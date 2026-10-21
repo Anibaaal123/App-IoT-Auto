@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:scaleX="0.58"
+        android:scaleY="0.58"
+        android:translateX="5.04"
+        android:translateY="5.04">
+        <!-- Radar / Ultrasonic wave arc top -->
+        <path
+            android:fillColor="#00BCD4"
+            android:pathData="M12,2C8.5,2 5.3,3.4 3,5.7L4.4,7.1C6.4,5.2 9.1,4 12,4C14.9,4 17.6,5.2 19.6,7.1L21,5.7C18.7,3.4 15.5,2 12,2ZM12,5.5C9.6,5.5 7.4,6.5 5.8,8.1L7.2,9.5C8.5,8.2 10.2,7.5 12,7.5C13.8,7.5 15.5,8.2 16.8,9.5L18.2,8.1C16.6,6.5 14.4,5.5 12,5.5Z" />
+        <!-- Autonomous IoT Vehicle Body -->
+        <path
+            android:fillColor="#00E5FF"
+            android:pathData="M18.92,11.01C18.72,10.42 18.16,10 17.5,10H6.5C5.84,10 5.29,10.42 5.08,11.01L3,17V21C3,21.55 3.45,22 4,22H5C5.55,22 6,21.55 6,21V20H18V21C18,21.55 18.45,22 19,22H20C20.55,22 21,21.55 21,21V17L18.92,11.01ZM6.5,17C5.67,17 5,16.33 5,15.5C5,14.67 5.67,14 6.5,14C7.33,14 8,14.67 8,15.5C8,16.33 7.33,17 6.5,17ZM17.5,17C16.67,17 16,16.33 16,15.5C16,14.67 16.67,14 17.5,14C18.33,14 19,14.67 19,15.5C19,16.33 18.33,17 17.5,17ZM5,14L6.5,11.5H17.5L19,14H5Z" />
+    </group>
+</vector>

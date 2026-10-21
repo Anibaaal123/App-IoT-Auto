@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Auto IoT Control</string>
+    <string name="course_subtitle">TI3042 — Aplicaciones Móviles para IoT (ISO/IEC 27400)</string>
+    <string name="login_title">Autenticación de Operador IoT</string>
+    <string name="login_subtitle">Acceso cifrado AES-256-GCM + Hash SHA-256</string>
+    <string name="username_label">Operador ID</string>
+    <string name="password_label">Clave de Seguridad</string>
+    <string name="btn_login">Iniciar Sesión Segura</string>
+    <string name="btn_register">Registrar Operador</string>
+    <string name="btn_logout">Cerrar Sesión</string>
+    <string name="role_sensor_node">NODO SENSOR</string>
+    <string name="role_control_station">ESTACIÓN DE CONTROL</string>
+    <string name="status_connected">CONECTADO</string>
+    <string name="status_disconnected">DESCONECTADO</string>
+    <string name="status_reconnecting">RECONECTANDO</string>
+    <string name="alert_brake_active">⚠️ FRENO ACTIVO</string>
+    <string name="alert_path_clear">VÍA DESPEJADA</string>
+    <string name="cmd_forward">ADELANTE</string>
+    <string name="cmd_stop">DETENER</string>
+    <string name="cmd_reverse">ATRÁS</string>
+    <string name="permission_banner_title">Permisos de Cercanía y Red IoT (ISO/IEC 27400)</string>
+    <string name="permission_banner_desc">Algunos permisos de ubicación/Wi-Fi cercano fueron denegados. La app continúa operativa en modo degradado seguro, pero se requieren para validar el entorno físico de red local.</string>
+    <string name="btn_retry_permissions">Solicitar Permisos</string>
+    <string name="btn_open_settings">Configuración</string>
+</resources>

@@ -1,0 +1,6 @@
+{
+  "name": "Auto IoT Control",
+  "description": "Plataforma móvil de control y telemetría segura (ISO/IEC 27400) para vehículo IoT autónomo con freno de emergencia ultrasónico, comunicación P2P por Sockets TCP y soporte HTTP ESP32.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
