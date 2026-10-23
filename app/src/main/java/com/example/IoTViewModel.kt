@@ -102,11 +102,6 @@ data class IoTUiState(
     val packetsCount: Long = 0L,
     val lastLatencyMs: Long = 0L,
 
-    // Base de datos local SQLite (Paso 2 y 3 - Almacenamiento y Consulta en tiempo real)
-    val sqliteRecordsCount: Long = 0L,
-    val recentDbRecords: List<TelemetryDbRecord> = emptyList(),
-    val isHistoryDialogVisible: Boolean = false,
-
     // Bitácora en vivo
     val logs: List<TelemetryLogEntry> = emptyList()
 )
@@ -130,7 +125,6 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private val securityManager = SecurityManager(application)
-    private val telemetryDbHelper = TelemetryDbHelper(application)
 
     private val _uiState = MutableStateFlow(IoTUiState())
     val uiState: StateFlow<IoTUiState> = _uiState.asStateFlow()
@@ -155,8 +149,7 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
         refreshSecurityMetadata()
         refreshLocalIpAddress()
         applySafetyBrakeRule(initialDistance = 65, currentMotor = MOTOR_DETENIDO)
-        refreshSqliteTelemetryData()
-        appendLog("ISO-27400", "Almacén EncryptedSharedPreferences y base local SQLite listos.")
+        appendLog("ISO-27400", "Almacén EncryptedSharedPreferences inicializado con SHA-256.")
     }
 
     fun refreshSecurityMetadata() {
@@ -185,9 +178,6 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
             appendLog("AUTH", "Operador '${securityManager.getActiveUser()}' autenticado mediante hash SHA-256.")
-            viewModelScope.launch(Dispatchers.IO) {
-                telemetryDbHelper.registerOperatorInDb(username, securityManager.getStoredPasswordHash())
-            }
         } else {
             refreshSecurityMetadata()
             _uiState.update {
@@ -203,14 +193,11 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
     fun registerNewOperator(username: String, plainPassword: String) {
         val result = securityManager.registerOperator(username, plainPassword)
         result.onSuccess { sha256Hash ->
-            viewModelScope.launch(Dispatchers.IO) {
-                telemetryDbHelper.registerOperatorInDb(username, sha256Hash)
-            }
             refreshSecurityMetadata()
             _uiState.update {
                 it.copy(
                     authErrorMessage = null,
-                    authSuccessMessage = "Operador registrado en EncryptedSharedPreferences y SQLite (SHA-256: ${sha256Hash.take(12)}...)"
+                    authSuccessMessage = "Operador registrado en EncryptedSharedPreferences (SHA-256: ${sha256Hash.take(12)}...)"
                 )
             }
             appendLog("ISO-27400", "Nuevas credenciales cifradas guardadas para '$username'.")
@@ -221,69 +208,6 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
                     authSuccessMessage = null
                 )
             }
-        }
-    }
-
-    // ========================================================================
-    // PERSISTENCIA Y CONSULTA LOCAL SQLITE (Paso 2 y 3)
-    // ========================================================================
-
-    fun recordTelemetryInDb(
-        distanceCm: Int,
-        motorState: String,
-        isAlert: Boolean,
-        isBrake: Boolean
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val op = _uiState.value.activeOperator.ifBlank { "admin" }
-            telemetryDbHelper.insertTelemetryReading(
-                distanceCm = distanceCm,
-                motorState = motorState,
-                isAlert = isAlert,
-                isBrake = isBrake,
-                operator = op
-            )
-            val count = telemetryDbHelper.getTelemetryCount()
-            _uiState.update { it.copy(sqliteRecordsCount = count) }
-        }
-    }
-
-    fun loadRecentDbRecords() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val records = telemetryDbHelper.getRecentTelemetry(limit = 15)
-            val count = telemetryDbHelper.getTelemetryCount()
-            _uiState.update {
-                it.copy(
-                    recentDbRecords = records,
-                    sqliteRecordsCount = count,
-                    isHistoryDialogVisible = true
-                )
-            }
-            appendLog("SQLITE", "Consulta realizada a tabla local: $count lecturas disponibles.")
-        }
-    }
-
-    fun dismissHistoryDialog() {
-        _uiState.update { it.copy(isHistoryDialogVisible = false) }
-    }
-
-    fun clearDbRecords() {
-        viewModelScope.launch(Dispatchers.IO) {
-            telemetryDbHelper.clearTelemetryHistory()
-            _uiState.update {
-                it.copy(
-                    recentDbRecords = emptyList(),
-                    sqliteRecordsCount = 0L
-                )
-            }
-            appendLog("SQLITE", "Historial de telemetría purgado de la base de datos local SQLite.")
-        }
-    }
-
-    fun refreshSqliteTelemetryData() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val count = telemetryDbHelper.getTelemetryCount()
-            _uiState.update { it.copy(sqliteRecordsCount = count) }
         }
     }
 
@@ -425,12 +349,6 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
                 ledAlertaEncendido = isEmergency
             )
         }
-        recordTelemetryInDb(
-            distanceCm = clamped,
-            motorState = updatedMotor,
-            isAlert = isEmergency,
-            isBrake = isEmergency
-        )
     }
 
     private fun applySafetyBrakeRule(initialDistance: Int, currentMotor: String) {
@@ -1145,9 +1063,6 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
                         packetsCount = state.packetsCount + 1,
                         lastLatencyMs = latencyMs
                     )
-                }
-                if (_uiState.value.packetsCount % 5 == 0L || isBrake) {
-                    recordTelemetryInDb(newDist, finalMotor, isBrake, isBrake)
                 }
             }
         } catch (e: Exception) {
