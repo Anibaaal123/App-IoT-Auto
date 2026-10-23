@@ -589,6 +589,16 @@ fun IoTDashboardScreen(
                 )
             }
 
+            if (uiState.isHistoryDialogVisible) {
+                BackHandler { viewModel.dismissHistoryDialog() }
+                SqliteTelemetryHistoryDialog(
+                    records = uiState.recentDbRecords,
+                    totalCount = uiState.sqliteRecordsCount,
+                    onClearDb = { viewModel.clearDbRecords() },
+                    onDismiss = { viewModel.dismissHistoryDialog() }
+                )
+            }
+
             if (isLandscape) {
                 Row(
                     modifier = Modifier.fillMaxSize(),
@@ -606,6 +616,8 @@ fun IoTDashboardScreen(
                             logs = uiState.logs,
                             packetsCount = uiState.packetsCount,
                             lastLatencyMs = uiState.lastLatencyMs,
+                            sqliteRecordsCount = uiState.sqliteRecordsCount,
+                            onOpenSqliteRecords = { viewModel.loadRecentDbRecords() },
                             onClearLogs = { viewModel.clearLogs() }
                         )
                     }
@@ -643,6 +655,8 @@ fun IoTDashboardScreen(
                         logs = uiState.logs,
                         packetsCount = uiState.packetsCount,
                         lastLatencyMs = uiState.lastLatencyMs,
+                        sqliteRecordsCount = uiState.sqliteRecordsCount,
+                        onOpenSqliteRecords = { viewModel.loadRecentDbRecords() },
                         onClearLogs = { viewModel.clearLogs() }
                     )
                 }
