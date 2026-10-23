@@ -18,7 +18,7 @@ class ExampleUnitTest {
     @Test
     fun sha256Hash_matchesPrecalculatedLabHash() {
         // Verifica que el cálculo SHA-256 sea determinista y coincida con el formato de 64 hex chars
-        val hash = sha256("test")
+        val hash = sha256("admin123")
         assertEquals(64, hash.length)
         assertEquals(SecurityManager.PRECALCULATED_LAB_HASH, hash)
     }

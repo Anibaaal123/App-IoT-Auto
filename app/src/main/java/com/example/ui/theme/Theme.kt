@@ -6,21 +6,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val IoTDarkColorScheme = darkColorScheme(
-    primary = IoTCyanAccent,
-    onPrimary = Color(0xFF002A30),
-    primaryContainer = Color(0xFF004E59),
-    onPrimaryContainer = IoTCyanBright,
-    secondary = IoTGreenForward,
-    onSecondary = Color.White,
-    tertiary = IoTBlueReverse,
-    onTertiary = Color.White,
-    background = IoTBackgroundDark,
-    onBackground = IoTTextPrimary,
-    surface = IoTSurfaceCard,
-    onSurface = IoTTextPrimary,
-    surfaceVariant = IoTSurfaceElevated,
-    onSurfaceVariant = IoTTextSecondary,
-    error = IoTRedStop,
+    primary = OemSurfaceElevated,
+    onPrimary = OemTextWhite,
+    primaryContainer = OemSurfaceElevated,
+    onPrimaryContainer = OemTextColdWhite,
+    secondary = OemWarningAmber,
+    onSecondary = Color.Black,
+    tertiary = OemOptimalGreen,
+    onTertiary = Color.Black,
+    background = OemCanvasBackground,
+    onBackground = OemTextColdWhite,
+    surface = OemCardSurface,
+    onSurface = OemTextColdWhite,
+    surfaceVariant = OemSurfaceElevated,
+    onSurfaceVariant = OemTextSecondary,
+    outline = OemBorderSubtle,
+    outlineVariant = OemBorderSubtle.copy(alpha = 0.5f),
+    error = OemCriticalRed,
     onError = Color.White
 )
 

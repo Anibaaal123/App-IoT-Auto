@@ -30,10 +30,10 @@ Para esta **Evaluación Sumativa 2 (y preparación para la Unidad 3)** se diseñ
 El sistema aplica la constante `DISTANCIA_SEGURIDAD = 15` (cm) tanto en el **Nodo Sensor / ESP32** como en la **Estación de Control**:
 - **Si `distancia <= 15 cm`**:
   - Se activa inmediatamente el freno de emergencia automático: si `estadoMotor == "AVANZANDO"`, pasa de forma forzada a `"DETENIDO"`.
-  - Se enciende el indicador visual rojo **`⚠️ FRENO ACTIVO`** y el **`LED ALERTA: ON`**.
-  - El botón **`ADELANTE`** (`#4CAF50`) se deshabilita visual y funcionalmente para impedir colisiones frontales, permitiendo únicamente `DETENER` (`#F44336`) o `ATRÁS` (`#2196F3`).
+  - Se enciende el indicador visual rojo **`⚠️ FRENO ACTIVO`** y el **`LED ALERTA: ON`** en Rojo Carmín (`#EF4444`).
+  - El botón **`ADELANTE`** (Verde suave `#10B981`) se deshabilita visual y funcionalmente para impedir colisiones frontales, permitiendo únicamente `DETENER` (Rojo carmín `#EF4444`) o `ATRÁS` (Ámbar `#F59E0B`).
 - **Si `distancia > 15 cm`**:
-  - El indicador muestra **`VÍA DESPEJADA`** y se habilita la tracción hacia adelante.
+  - El indicador muestra **`VÍA DESPEJADA`** en Verde oliva/esmeralda suave (`#10B981`) y se habilita la tracción hacia adelante.
 
 ---
 
@@ -86,15 +86,33 @@ El sistema aplica la constante `DISTANCIA_SEGURIDAD = 15` (cm) tanto en el **Nod
 
 ## 5. Guía de Pruebas para las 4 Estaciones de Revisión en Sala
 
-### Estación 1: Ciberseguridad ISO/IEC 27400 (Login, SHA-256 y EncryptedSharedPreferences)
-1. Abrir la aplicación en la pantalla de **Autenticación de Operador IoT**.
-2. Observar el **Inspector Criptográfico ISO/IEC 27400** en la parte inferior: muestra en vivo cómo la clave ingresada se transforma en un hash **SHA-256** de 64 caracteres hexadecimales sin almacenar texto plano.
-3. Seleccionar la pestaña **"Registrar Clave"**, ingresar un usuario (ej. `operador_iot`) y una clave (ej. `IoT2026`), y presionar **"CIFRAR CON SHA-256 Y ENTRAR"** (o usar la clave por defecto `test` con el usuario `operador_iot` cuyo hash SHA-256 `9f86d081...` viene precalculado).
-4. Cerrar completamente la app y volver a abrirla: comprobar que la **sesión persiste de forma cifrada** y entra directamente al Dashboard. Presionar el botón de **Cerrar Sesión** (esquina superior derecha) para verificar la destrucción segura de la sesión.
+### Estación 1: Ciberseguridad ISO/IEC 27400 (Login Seguro, SHA-256 y EncryptedSharedPreferences)
+1. Abrir la aplicación: la pantalla presenta un diseño de inicio de sesión estándar y profesional, con los campos limpios y vacíos (sin credenciales prellenadas en pantalla para proteger la privacidad del operador).
+2. **Credenciales preconfiguradas para la evaluación docente:**
+   - **Usuario:** `admin`
+   - **Contraseña:** `admin123` (o clave corta de laboratorio `1234`)
+3. Tocar **"ENTRAR AL PANEL"**: la aplicación procesa internamente la clave calculando su digestión unidireccional **SHA-256** (`MessageDigest.getInstance("SHA-256")`) y comparándola contra el hash cifrado almacenado en `EncryptedSharedPreferences` (`AES-256-SIV` para claves y `AES-256-GCM` para valores respaldado por `AndroidKeyStore`), asegurando **cero contraseñas en texto plano** conforme a la norma ISO/IEC 27400.
+4. También permite registrar nuevos operadores tocando el enlace inferior *"¿Registrar nuevo operador? Toca aquí"*.
+5. Cerrar completamente la app y volver a abrirla: comprobar que la **sesión persiste de forma cifrada** y entra directamente al Dashboard. Presionar el botón de **Cerrar Sesión** (esquina superior derecha) para verificar la destrucción segura de la sesión.
 
 ### Estación 2: Permisos en Runtime y Manejo de Denegación
 1. Al iniciar por primera vez (o desde Ajustes quitando los permisos de Ubicación/Dispositivos cercanos), rechazar los permisos solicitados.
 2. Verificar que la aplicación **NO se cierra ni crashea**, mostrando el **Banner y Diálogo ISO/IEC 27400** que explica por qué se requieren los permisos y ofreciendo los botones **"Volver a Solicitar"** y **"Configuración"**.
+
+### Estación 3: Interconexión Inalámbrica Local P2P y Modo Prueba en Banco
+1. **Conexión entre Dos Dispositivos:**
+   - Teléfono 1 (Auto / Rol A): Presionar *"ACTIVAR AUTO"*. La app abre el `ServerSocket` TCP en el puerto 8888 y muestra el número IP local en pantalla grande (ej. `192.168.1.45`).
+   - Teléfono 2 (Control / Rol B): En la pestaña *"📱 A otro Celular"*, escribir el número IP del Teléfono 1 y presionar *"CONECTAR AL AUTO"*.
+2. **Mandos de Conducción:**
+   - Presionar **`ADELANTE`**: el vehículo avanza y el sensor de distancia en ambos teléfonos muestra cómo el auto se aproxima al obstáculo (-3 cm cada 200 ms).
+   - **Demostración de la Regla Crítica (<= 15 cm):** Al alcanzar los 15 cm, el vehículo activa automáticamente el freno (`DETENIDO`), enciende **`⚠️ FRENO ACTIVO`**, prende el **`LED ALERTA: ON`** y bloquea el botón **`ADELANTE`**.
+   - Presionar **`ATRÁS`**: el auto retrocede (+3 cm cada 200 ms) alejándose del peligro hasta despejar la vía (**`VÍA DESPEJADA`**).
+3. **Modo Prueba en Banco (Sin Vehículo Físico):**
+   - En el Rol A (El Auto), se dispone del panel *"MODO PRUEBA (SIMULACIÓN EN BANCO)"* con mandos locales directos (`AVANZAR`, `DETENER`, `ATRÁS`), permitiendo al docente evaluar la cinemática y el corte de emergencia a 15 cm directamente en un solo dispositivo cuando no se disponga del chasis físico.
+
+### Estación 4: Tolerancia a Fallos y Rotación de Pantalla
+1. Con la conexión activa, rotar el teléfono a horizontal (Landscape) y vertical (Portrait): comprobar que la conexión socket TCP **no se corta** y la interfaz se adapta fluidamente.
+2. Desconectar abruptamente el Wi-Fi o cerrar el servidor: verificar que la estación pasa a estado `"RECONECTANDO"` con reintento automático sin crashear.
 
 ### Estación 3: Interconexión en Vivo entre Dos Dispositivos (Par-a-Par TCP 8888) y Freno a 15 cm
 1. Conectar el **Teléfono 1** y el **Teléfono 2** a la misma red Wi-Fi local (o zona Wi-Fi portátil de uno de los teléfonos).
@@ -106,4 +124,29 @@ El sistema aplica la constante `DISTANCIA_SEGURIDAD = 15` (cm) tanto en el **Nod
 
 ### Estación 4: Rotación de Pantalla y Tolerancia a Fallos (Desconexión Forzada)
 1. Con la conexión activa entre ambos dispositivos, **rotar el teléfono de Portrait a Landscape**: verificar que la interfaz se reorganiza en dos paneles sin perder la sesión ni desconectar el socket TCP.
-2. En el **Teléfono 1 (Nodo Sensor)**, presionar **"DETENER SERVIDOR TCP"** o apagar el Wi-Fi abruptamente: verificar que el **Teléfono 2 (Estación de Control)** captura la excepción en `Dispatchers.IO`, cambia el indicador superior a **`RECONECTANDO`** (`"Desconectado - Reintentando conexión..."`) sin congelar la interfaz, y al volver a encender el servidor en el Teléfono 1 se **reconecta automáticamente**.
+2. En el **Teléfono 1 (Nodo Sensor)**, presionar **"DETENER AUTO"** o apagar el Wi-Fi abruptamente: verificar que el **Teléfono 2 (Estación de Control)** captura la excepción en `Dispatchers.IO`, cambia el indicador superior a **`RECONECTANDO`** sin congelar la interfaz, y al volver a encender el servidor en el Teléfono 1 se **reconecta automáticamente**.
+
+---
+
+## 7. Identidad Visual y Paleta Cromática (Tablero de Diagnóstico OEM Automotriz)
+
+La interfaz gráfica fue rediseñada íntegramente con una paleta automotriz profesional estilo tablero de diagnóstico OEM (inspirada en la interfaz de BMW iDrive y escáneres OBD2):
+
+- **Fondo general (Canvas):** Gris antracita / pizarra muy oscuro mate (`#191C21`). Sin negros puros ni azules brillantes.
+- **Contenedores y Tarjetas (Cards):** Gris grafito un tono más claro (`#262B33`), esquinas redondeadas y separadores/bordes sutiles en gris oscuro (`#313742`).
+- **Tipografía:**
+  - **Títulos principales y estados clave:** Blanco puro (`#FFFFFF`) o blanco frío (`#F3F4F6`).
+  - **Subtítulos, etiquetas y textos secundarios:** Gris medio / ceniza (`#8C95A6`).
+- **Sistema de Color Funcional (Semáforo de Diagnóstico):**
+  - **Crítico / Peligro / Detener:** Rojo escarlata sobrio (`#E02E2E` o `#EF4444`).
+  - **Precaución / Atención / Alertas intermedias:** Ámbar automotriz (`#F59E0B` o `#D97706`).
+  - **Vía libre / Conectado / Estado óptimo:** Verde esmeralda suave (`#10B981`).
+- **Botones y Controles:**
+  - **Botón principal ('Entrar', 'Conectar', 'Activar Auto'):** Superficie gris grafito destacada (`#2F3642`) con borde técnico (`#3E4656`) y texto blanco en negrita (`#FFFFFF`), alternando a rojo escarlata (`#E02E2E`) cuando la acción es detener/cortar.
+  - **Mandos de dirección ('Avanzar', 'Atrás'):** Fondos oscuros neutros (`#262B33`) con texto claro (`#F3F4F6`) e íconos legibles, reservando el color llamativo exclusivamente para **`DETENER`** (rojo escarlata sobrio `#E02E2E`).
+- **Sensor y Consola:**
+  - **Distancia del sensor:** Número grande en texto blanco limpio (`#FFFFFF`), conmutando a rojo escarlata (`#E02E2E`) únicamente cuando cae en el umbral crítico (`<= 15 cm`).
+  - **Consola de telemetría:** Fondo técnico carbón (`#14161B`) con tipografía monoespaciada en gris suave (`#9CA3AF`).
+- **Eliminación Total:** Cero residuos de colores cian, turquesa, rosa neón, bordes brillantes o efectos cyberpunk.
+
+

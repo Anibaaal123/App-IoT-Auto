@@ -86,7 +86,7 @@ data class IoTUiState(
     val activeRole: DeviceRole = DeviceRole.CONTROL_STATION,
     val connectionMode: ControlConnectionMode = ControlConnectionMode.ANDROID_P2P_TCP,
     val connectionStatus: ConnectionStatus = ConnectionStatus.DISCONNECTED,
-    val statusDetailMessage: String = "Listo para iniciar enlace inalámbrico local",
+    val statusDetailMessage: String = "Listo para iniciar",
     val localIpAddress: String = "0.0.0.0",
     val targetIpAddress: String = "192.168.4.1",
     val tcpPort: Int = IoTViewModel.DEFAULT_TCP_PORT,
@@ -263,8 +263,8 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
         refreshLocalIpAddress()
 
         val defaultStatusMsg = when (role) {
-            DeviceRole.SENSOR_NODE -> "Modo Nodo Sensor listo. Inicie el Servidor TCP en puerto ${_uiState.value.tcpPort}."
-            DeviceRole.CONTROL_STATION -> "Modo Estación de Control listo. Ingrese IP destino y conecte."
+            DeviceRole.SENSOR_NODE -> "Auto listo: Presione ACTIVAR AUTO"
+            DeviceRole.CONTROL_STATION -> "Control listo: Ingrese IP y conecte"
         }
 
         _uiState.update {
@@ -365,33 +365,30 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * Simulación automática de lectura del sensor ultrasónico HC-SR04 (para demostración en vivo).
-     */
-    fun toggleAutoUltrasonicSimulation(enabled: Boolean) {
-        _uiState.update { it.copy(autoUltrasonicSim = enabled) }
-        ultrasonicSimJob?.cancel()
-        if (!enabled) {
-            appendLog("HC-SR04", "Lectura ultrasónica manual mediante Slider activada.")
-            return
-        }
+    private var kinematicsJob: Job? = null
 
-        appendLog("HC-SR04", "Simulación automática de barrido ultrasónico iniciada.")
-        ultrasonicSimJob = viewModelScope.launch(Dispatchers.Default) {
-            var direction = -1
-            while (isActive && _uiState.value.autoUltrasonicSim) {
-                val current = _uiState.value.distanciaCm
-                val step = if (current <= 30) 3 else 12
-                var next = current + (direction * step)
-                if (next <= 5) {
-                    next = 5
-                    direction = 1
-                } else if (next >= 180) {
-                    next = 180
-                    direction = -1
+    private fun syncKinematicsForMotor(motorState: String) {
+        kinematicsJob?.cancel()
+        if (motorState == MOTOR_AVANZANDO) {
+            kinematicsJob = viewModelScope.launch(Dispatchers.Default) {
+                while (isActive && _uiState.value.estadoMotor == MOTOR_AVANZANDO) {
+                    delay(200L)
+                    val current = _uiState.value.distanciaCm
+                    val next = (current - 3).coerceAtLeast(MIN_DISTANCIA_CM)
+                    updateUltrasonicDistance(next)
+                    if (next <= DISTANCIA_SEGURIDAD) {
+                        break
+                    }
                 }
-                updateUltrasonicDistance(next)
-                delay(350L)
+            }
+        } else if (motorState == MOTOR_RETROCEDIENDO) {
+            kinematicsJob = viewModelScope.launch(Dispatchers.Default) {
+                while (isActive && _uiState.value.estadoMotor == MOTOR_RETROCEDIENDO) {
+                    delay(200L)
+                    val current = _uiState.value.distanciaCm
+                    val next = (current + 3).coerceAtMost(MAX_DISTANCIA_CM)
+                    updateUltrasonicDistance(next)
+                }
             }
         }
     }
@@ -420,17 +417,25 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
                     statusDetailMessage = "⚠️ Comando ADELANTE bloqueado por freno de seguridad (<= 15 cm)"
                 )
             }
+            syncKinematicsForMotor(MOTOR_DETENIDO)
             return
         }
 
         if (state.activeRole == DeviceRole.SENSOR_NODE) {
             applyLocalNodeCommand(normalizedCmd, origin = "Panel Local")
         } else {
-            // Estamos en ROL B: Estación de Control
+            // En ROL B: Estación de Control
             when (state.connectionMode) {
                 ControlConnectionMode.ANDROID_P2P_TCP -> sendTcpCommandFromStation(normalizedCmd)
                 ControlConnectionMode.ESP32_HTTP -> sendHttpCommandToEsp32(normalizedCmd)
             }
+            // Sincroniza cinemática local de visualización
+            val simulatedMotor = when (normalizedCmd) {
+                CMD_ADELANTE -> if (state.distanciaCm <= DISTANCIA_SEGURIDAD) MOTOR_DETENIDO else MOTOR_AVANZANDO
+                CMD_ATRAS -> MOTOR_RETROCEDIENDO
+                else -> MOTOR_DETENIDO
+            }
+            syncKinematicsForMotor(simulatedMotor)
         }
     }
 
@@ -469,6 +474,7 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
                 ledAlertaEncendido = isEmergency
             )
         }
+        syncKinematicsForMotor(newMotorState)
     }
 
     // =========================================================================
@@ -1151,7 +1157,7 @@ class IoTViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         super.onCleared()
-        ultrasonicSimJob?.cancel()
+        kinematicsJob?.cancel()
         serverJob?.cancel()
         clientJob?.cancel()
         closeServerResourcesSafely()

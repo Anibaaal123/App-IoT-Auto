@@ -20,6 +20,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,14 +55,18 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Engineering
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Router
@@ -87,6 +92,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -133,18 +139,55 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ui.theme.IoTAmberWarning
-import com.example.ui.theme.IoTBackgroundDark
-import com.example.ui.theme.IoTBlueReverse
-import com.example.ui.theme.IoTCyanAccent
-import com.example.ui.theme.IoTCyanBright
-import com.example.ui.theme.IoTGreenForward
-import com.example.ui.theme.IoTRedStop
-import com.example.ui.theme.IoTSurfaceCard
-import com.example.ui.theme.IoTSurfaceElevated
-import com.example.ui.theme.IoTTextPrimary
-import com.example.ui.theme.IoTTextSecondary
+import com.example.ui.theme.CrimsonRedStop
+import com.example.ui.theme.CyberAmber
+import com.example.ui.theme.CyberCobalt
+import com.example.ui.theme.CyberCyan
+import com.example.ui.theme.CyberCyanBright
+import com.example.ui.theme.CyberEmerald
+import com.example.ui.theme.CyberPinkLight
+import com.example.ui.theme.CyberPinkNeon
+import com.example.ui.theme.CyberRedAlert
+import com.example.ui.theme.DangerRed
+import com.example.ui.theme.DimGraphiteText
+import com.example.ui.theme.ForwardBtnBg
+import com.example.ui.theme.ForwardBtnBorder
+import com.example.ui.theme.ForwardBtnDisabledBg
+import com.example.ui.theme.ForwardBtnDisabledBorder
+import com.example.ui.theme.ForwardBtnDisabledText
+import com.example.ui.theme.ForwardBtnText
+import com.example.ui.theme.GpioHighActive
+import com.example.ui.theme.GpioLowInactive
+import com.example.ui.theme.LightGrayTerminalText
 import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.NeutralCharcoalReverse
+import com.example.ui.theme.OemBorderProminent
+import com.example.ui.theme.OemBorderSubtle
+import com.example.ui.theme.OemCanvasBackground
+import com.example.ui.theme.OemCardSurface
+import com.example.ui.theme.OemConsoleBg
+import com.example.ui.theme.OemCriticalRed
+import com.example.ui.theme.OemOptimalGreen
+import com.example.ui.theme.OemSurfaceElevated
+import com.example.ui.theme.OemTextColdWhite
+import com.example.ui.theme.OemTextConsole
+import com.example.ui.theme.OemTextDim
+import com.example.ui.theme.OemTextSecondary
+import com.example.ui.theme.OemTextWhite
+import com.example.ui.theme.OemWarningAmber
+import com.example.ui.theme.OledBorder
+import com.example.ui.theme.OledDarkGraphiteCard
+import com.example.ui.theme.OledElevatedSurface
+import com.example.ui.theme.OledPureBlack
+import com.example.ui.theme.OledTerminalBg
+import com.example.ui.theme.SafePink
+import com.example.ui.theme.TacticalBorderGlow
+import com.example.ui.theme.TacticalDarkBackground
+import com.example.ui.theme.TacticalSurfaceCard
+import com.example.ui.theme.TacticalSurfaceElevated
+import com.example.ui.theme.TextCockpitDim
+import com.example.ui.theme.TextCockpitMuted
+import com.example.ui.theme.TextCockpitWhite
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
@@ -159,10 +202,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/**
- * Obtiene la lista de permisos en tiempo de ejecución requeridos según el nivel de API de Android
- * para el descubrimiento de red local y cercanía IoT (ISO/IEC 27400).
- */
 fun getRequiredIoTPermissions(): Array<String> {
     val permissions = mutableListOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -205,7 +244,6 @@ fun AutoIoTControlApp(iotViewModel: IoTViewModel = viewModel()) {
         }
     }
 
-    // Verifica permisos al iniciar y al volver desde la pantalla de Configuración del sistema
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -253,9 +291,9 @@ fun AutoIoTControlApp(iotViewModel: IoTViewModel = viewModel()) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(IoTBackgroundDark)
+            .background(TacticalDarkBackground)
             .windowInsetsPadding(WindowInsets.safeDrawing),
-        containerColor = IoTBackgroundDark
+        containerColor = TacticalDarkBackground
     ) { innerPadding ->
         if (!uiState.isAuthenticated) {
             LoginScreenIso27400(
@@ -287,7 +325,7 @@ fun AutoIoTControlApp(iotViewModel: IoTViewModel = viewModel()) {
 }
 
 // ============================================================================
-// 1. PANTALLA DE LOGIN Y CREDENCIALES SEGURAS (ISO/IEC 27400)
+// 1. PANTALLA DE LOGIN Y SEGURIDAD CRIPTOGRÁFICA (ISO/IEC 27400)
 // ============================================================================
 
 @Composable
@@ -300,83 +338,57 @@ fun LoginScreenIso27400(
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    val securityHelper = remember { SecurityManager(context) }
-
     var isRegisterMode by rememberSaveable { mutableStateOf(false) }
-    var username by rememberSaveable { mutableStateOf(uiState.registeredOperator) }
+    var username by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-
-    val liveInputSha256 = remember(password) {
-        if (password.isBlank()) "Esperando entrada para calcular SHA-256..."
-        else securityHelper.sha256(password)
-    }
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.TopCenter
+            .padding(horizontal = 20.dp, vertical = 24.dp),
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = 560.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .widthIn(max = 440.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Encabezado Institucional TI3042
-            Card(
-                colors = CardDefaults.cardColors(containerColor = IoTSurfaceCard),
-                border = BorderStroke(1.dp, IoTCyanAccent.copy(alpha = 0.6f)),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
+            // Logotipo de la App
+            Surface(
+                color = OemSurfaceElevated,
+                shape = CircleShape,
+                border = BorderStroke(1.5.dp, OemBorderProminent),
+                modifier = Modifier.size(76.dp)
             ) {
-                Column(modifier = Modifier.padding(18.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Surface(
-                            color = IoTCyanAccent.copy(alpha = 0.18f),
-                            shape = CircleShape,
-                            modifier = Modifier.size(48.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Shield,
-                                    contentDescription = "Escudo ISO 27400",
-                                    tint = IoTCyanBright,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-                        }
-                        Column {
-                            Text(
-                                text = "AUTO_IOT_CONTROL • ES2",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = IoTCyanBright
-                            )
-                            Text(
-                                text = "TI3042 — Aplicaciones Móviles para IoT",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = IoTTextSecondary
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Arquitectura de Ciberseguridad IoT/OT bajo norma ISO/IEC 27400. Credenciales almacenadas en EncryptedSharedPreferences (AES-256-GCM) con validación por resumen criptográfico SHA-256.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = IoTTextSecondary
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.DirectionsCar,
+                        contentDescription = "Logo Auto IoT",
+                        tint = OemTextColdWhite,
+                        modifier = Modifier.size(42.dp)
                     )
                 }
             }
 
-            // Banner de estado de permisos en Runtime (No bloqueante)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Auto IoT Control",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Black,
+                    color = OemTextWhite,
+                    letterSpacing = 0.5.sp
+                )
+                Text(
+                    text = "Tablero de Diagnóstico y Control Vehicular",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = OemTextSecondary
+                )
+            }
+
             if (!uiState.permissionsGranted) {
                 PermissionWarningBanner(
                     missingPermissions = uiState.missingPermissionsList,
@@ -385,76 +397,22 @@ fun LoginScreenIso27400(
                 )
             }
 
-            // Tarjeta Principal de Login / Registro Cifrado
+            // Tarjeta Principal de Inicio de Sesión
             Card(
-                colors = CardDefaults.cardColors(containerColor = IoTSurfaceCard),
+                colors = CardDefaults.cardColors(containerColor = OemCardSurface),
                 shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, OemBorderSubtle),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(22.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        FilterChip(
-                            selected = !isRegisterMode,
-                            onClick = {
-                                isRegisterMode = false
-                                onClearFeedback()
-                            },
-                            label = { Text("Iniciar Sesión") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = IoTCyanAccent.copy(alpha = 0.25f),
-                                selectedLabelColor = IoTCyanBright
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .testTag("mode_login_chip")
-                        )
-
-                        FilterChip(
-                            selected = isRegisterMode,
-                            onClick = {
-                                isRegisterMode = true
-                                onClearFeedback()
-                            },
-                            label = { Text("Registrar Clave") },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.PersonAdd,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = IoTGreenForward.copy(alpha = 0.25f),
-                                selectedLabelColor = IoTGreenForward
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .testTag("mode_register_chip")
-                        )
-                    }
-
                     Text(
-                        text = if (isRegisterMode) {
-                            "Registro de Operador IoT (Genera nuevo Hash SHA-256)"
-                        } else {
-                            "Validación de Operador Registrado (${uiState.registeredOperator})"
-                        },
-                        style = MaterialTheme.typography.titleSmall,
+                        text = if (isRegisterMode) "Crear Nuevo Operador" else "Iniciar Sesión",
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = IoTTextPrimary
+                        color = OemTextWhite
                     )
 
                     OutlinedTextField(
@@ -463,18 +421,22 @@ fun LoginScreenIso27400(
                             username = it
                             onClearFeedback()
                         },
-                        label = { Text("ID de Operador") },
+                        label = { Text("Usuario") },
                         singleLine = true,
                         leadingIcon = {
-                            Icon(Icons.Default.Security, contentDescription = null, tint = IoTCyanAccent)
+                            Icon(Icons.Default.Security, contentDescription = null, tint = OemTextSecondary)
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = IoTCyanAccent,
-                            unfocusedBorderColor = IoTTextSecondary.copy(alpha = 0.4f)
+                            focusedBorderColor = OemTextColdWhite,
+                            unfocusedBorderColor = OemBorderSubtle,
+                            focusedLabelColor = OemTextColdWhite,
+                            unfocusedLabelColor = OemTextSecondary,
+                            focusedLeadingIconColor = OemTextColdWhite,
+                            unfocusedLeadingIconColor = OemTextSecondary,
+                            cursorColor = OemTextColdWhite
                         ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("username_input")
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
@@ -483,45 +445,41 @@ fun LoginScreenIso27400(
                             password = it
                             onClearFeedback()
                         },
-                        label = {
-                            Text(
-                                if (isRegisterMode) "Nueva Clave (mín. 4 caracteres)"
-                                else "Clave de Seguridad"
-                            )
-                        },
+                        label = { Text("Contraseña") },
                         singleLine = true,
-                        visualTransformation = if (passwordVisible) {
-                            VisualTransformation.None
-                        } else {
-                            PasswordVisualTransformation()
-                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         leadingIcon = {
-                            Icon(Icons.Default.Key, contentDescription = null, tint = IoTCyanAccent)
+                            Icon(Icons.Default.Key, contentDescription = null, tint = OemTextSecondary)
                         },
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = "Alternar visibilidad de clave"
+                                    contentDescription = "Alternar contraseña",
+                                    tint = OemTextSecondary
                                 )
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = IoTCyanAccent,
-                            unfocusedBorderColor = IoTTextSecondary.copy(alpha = 0.4f)
+                            focusedBorderColor = OemTextColdWhite,
+                            unfocusedBorderColor = OemBorderSubtle,
+                            focusedLabelColor = OemTextColdWhite,
+                            unfocusedLabelColor = OemTextSecondary,
+                            focusedLeadingIconColor = OemTextColdWhite,
+                            unfocusedLeadingIconColor = OemTextSecondary,
+                            cursorColor = OemTextColdWhite
                         ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("password_input")
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Mensajes de error o éxito de autenticación
+                    // Mensaje de error
                     AnimatedVisibility(visible = uiState.authErrorMessage != null) {
                         Surface(
-                            color = IoTRedStop.copy(alpha = 0.16f),
+                            color = OemCriticalRed.copy(alpha = 0.16f),
                             shape = RoundedCornerShape(10.dp),
-                            border = BorderStroke(1.dp, IoTRedStop),
+                            border = BorderStroke(1.dp, OemCriticalRed),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -529,117 +487,52 @@ fun LoginScreenIso27400(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = IoTRedStop)
+                                Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = OemCriticalRed)
                                 Text(
                                     text = uiState.authErrorMessage.orEmpty(),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color.White
+                                    color = OemTextWhite
                                 )
                             }
                         }
                     }
 
+                    // Botón Principal ('Entrar al panel')
                     Button(
                         onClick = {
-                            if (isRegisterMode) {
-                                onRegister(username, password)
-                            } else {
-                                onLogin(username, password)
-                            }
+                            if (isRegisterMode) onRegister(username, password)
+                            else onLogin(username, password)
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isRegisterMode) IoTGreenForward else IoTCyanAccent,
-                            contentColor = if (isRegisterMode) Color.White else Color(0xFF00252B)
+                            containerColor = OemSurfaceElevated,
+                            contentColor = OemTextWhite
                         ),
+                        border = BorderStroke(1.dp, OemBorderProminent),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
-                            .testTag("login_submit_button")
                     ) {
-                        Icon(
-                            imageVector = if (isRegisterMode) Icons.Default.PersonAdd else Icons.Default.Lock,
-                            contentDescription = null
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (isRegisterMode) {
-                                "CIFRAR CON SHA-256 Y ENTRAR"
-                            } else {
-                                "VALIDAR HASH SHA-256 E INICIAR SESIÓN"
-                            },
-                            fontWeight = FontWeight.Bold
+                            text = if (isRegisterMode) "CREAR CUENTA" else "ENTRAR AL PANEL",
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 0.5.sp
                         )
                     }
 
-                    // Acceso rápido para demostración en laboratorio TI3042
-                    HorizontalDivider(color = IoTTextSecondary.copy(alpha = 0.2f))
-                    Text(
-                        text = "Inspector Criptográfico ISO/IEC 27400 (Cero Texto Plano):",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = IoTCyanBright,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-                    Surface(
-                        color = IoTBackgroundDark,
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = "• Vault: EncryptedSharedPreferences (AES256_SIV / AES256_GCM)",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = FontFamily.Monospace,
-                                color = IoTTextSecondary
-                            )
-                            Text(
-                                text = "• Operador en Vault: ${uiState.registeredOperator}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = FontFamily.Monospace,
-                                color = IoTTextSecondary
-                            )
-                            Text(
-                                text = "• Hash Almacenado: ${uiState.storedHashPreview}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = FontFamily.Monospace,
-                                color = IoTCyanBright
-                            )
-                            Text(
-                                text = "• Hash Entrada (SHA-256): ${liveInputSha256.take(28)}...",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = FontFamily.Monospace,
-                                color = IoTGreenForward
-                            )
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    // Alternar entre Iniciar Sesión y Crear Cuenta
+                    TextButton(
+                        onClick = {
+                            isRegisterMode = !isRegisterMode
+                            onClearFeedback()
+                        },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
                         Text(
-                            text = "Nota Evaluación: Puede registrar su propia clave en la pestaña 'Registrar Clave' o usar el perfil pre-inicializado.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = IoTTextSecondary,
-                            modifier = Modifier.weight(1f)
+                            text = if (isRegisterMode) "¿Ya tienes cuenta? Inicia sesión aquí" else "¿Registrar nuevo operador? Toca aquí",
+                            color = OemTextSecondary,
+                            fontSize = 13.sp
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedButton(
-                            onClick = {
-                                // Registra/autentica un operador de prueba en vivo generando el hash SHA-256 en el acto
-                                isRegisterMode = true
-                                username = "operador_iot"
-                            },
-                            border = BorderStroke(1.dp, IoTCyanAccent.copy(alpha = 0.6f)),
-                            modifier = Modifier.testTag("switch_to_register_button")
-                        ) {
-                            Text("Configurar Clave", fontSize = 11.sp, color = IoTCyanBright)
-                        }
                     }
                 }
             }
@@ -648,7 +541,7 @@ fun LoginScreenIso27400(
 }
 
 // ============================================================================
-// 2. DASHBOARD PRINCIPAL IoT (SOPORTA ROTACIÓN PORTRAIT / LANDSCAPE)
+// 2. DASHBOARD PRINCIPAL IoT (DISEÑO ADAPTATIVO POR ROL)
 // ============================================================================
 
 @Composable
@@ -665,9 +558,9 @@ fun IoTDashboardScreen(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(IoTBackgroundDark)
+            .background(TacticalDarkBackground)
     ) {
-        val isLandscapeOrExpanded = maxWidth >= 680.dp
+        val isLandscape = maxWidth >= 680.dp
 
         Column(
             modifier = Modifier
@@ -675,14 +568,12 @@ fun IoTDashboardScreen(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Barra Superior de Rol Activo + Estado de Conexión + Cierre de Sesión Seguro
             TopStatusHeaderBar(
                 uiState = uiState,
                 onShowEsp32Code = onShowEsp32Code,
                 onLogout = { viewModel.logout() }
             )
 
-            // Banner de Permisos ISO 27400 si alguno fue denegado (Sin bloquear la aplicación)
             if (!uiState.permissionsGranted) {
                 PermissionWarningBanner(
                     missingPermissions = uiState.missingPermissionsList,
@@ -698,8 +589,7 @@ fun IoTDashboardScreen(
                 )
             }
 
-            if (isLandscapeOrExpanded) {
-                // Diseño Canónico de 2 Paneles para Modo Horizontal (Landscape) / Tablets
+            if (isLandscape) {
                 Row(
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -728,11 +618,14 @@ fun IoTDashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         UltrasonicTelemetryCard(uiState = uiState, viewModel = viewModel)
-                        MotorControlPadCard(uiState = uiState, viewModel = viewModel)
+                        if (uiState.activeRole == DeviceRole.CONTROL_STATION) {
+                            MotorControlPadCard(uiState = uiState, viewModel = viewModel)
+                        } else {
+                            VehicleLocalTestCard(uiState = uiState, viewModel = viewModel)
+                        }
                     }
                 }
             } else {
-                // Diseño Vertical (Portrait)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -741,7 +634,11 @@ fun IoTDashboardScreen(
                 ) {
                     RoleAndNetworkConfigCard(uiState = uiState, viewModel = viewModel)
                     UltrasonicTelemetryCard(uiState = uiState, viewModel = viewModel)
-                    MotorControlPadCard(uiState = uiState, viewModel = viewModel)
+                    if (uiState.activeRole == DeviceRole.CONTROL_STATION) {
+                        MotorControlPadCard(uiState = uiState, viewModel = viewModel)
+                    } else {
+                        VehicleLocalTestCard(uiState = uiState, viewModel = viewModel)
+                    }
                     TelemetryLogConsoleCard(
                         logs = uiState.logs,
                         packetsCount = uiState.packetsCount,
@@ -762,22 +659,22 @@ fun TopStatusHeaderBar(
 ) {
     val statusColor by animateColorAsState(
         targetValue = when (uiState.connectionStatus) {
-            ConnectionStatus.CONNECTED -> IoTGreenForward
-            ConnectionStatus.RECONECTANDO -> IoTAmberWarning
-            ConnectionStatus.DISCONNECTED -> IoTRedStop
+            ConnectionStatus.CONNECTED -> OemOptimalGreen
+            ConnectionStatus.RECONECTANDO -> OemWarningAmber
+            ConnectionStatus.DISCONNECTED -> OemCriticalRed
         },
         animationSpec = tween(250),
         label = "statusColor"
     )
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = IoTSurfaceCard),
-        border = BorderStroke(1.dp, statusColor.copy(alpha = 0.65f)),
+        colors = CardDefaults.cardColors(containerColor = OemCardSurface),
+        border = BorderStroke(1.dp, OemBorderSubtle),
         shape = RoundedCornerShape(14.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Row(
@@ -785,93 +682,71 @@ fun TopStatusHeaderBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Indicador de Rol Activo
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.weight(1f)
                 ) {
                     Surface(
-                        color = IoTCyanAccent.copy(alpha = 0.2f),
+                        color = OemSurfaceElevated,
                         shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, IoTCyanAccent)
+                        border = BorderStroke(1.dp, OemBorderSubtle)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             Icon(
-                                imageVector = if (uiState.activeRole == DeviceRole.SENSOR_NODE) {
-                                    Icons.Default.Memory
-                                } else {
-                                    Icons.Default.SettingsInputAntenna
-                                },
+                                imageVector = if (uiState.activeRole == DeviceRole.SENSOR_NODE) Icons.Default.DirectionsCar else Icons.Default.SettingsInputAntenna,
                                 contentDescription = null,
-                                tint = IoTCyanBright,
-                                modifier = Modifier.size(16.dp)
+                                tint = OemTextColdWhite,
+                                modifier = Modifier.size(15.dp)
                             )
                             Text(
                                 text = uiState.activeRole.badge,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = IoTCyanBright,
-                                modifier = Modifier.testTag("active_role_badge")
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = OemTextColdWhite
                             )
                         }
                     }
 
-                    // Indicador de Estado de Conexión ("CONECTADO", "DESCONECTADO", "RECONECTANDO")
                     Surface(
-                        color = statusColor.copy(alpha = 0.2f),
+                        color = statusColor.copy(alpha = 0.15f),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, statusColor)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(8.dp)
+                                    .size(7.dp)
                                     .clip(CircleShape)
                                     .background(statusColor)
                             )
                             Text(
                                 text = uiState.connectionStatus.label,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.ExtraBold,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
                                 color = statusColor,
-                                modifier = Modifier.testTag("connection_status_badge")
+                                maxLines = 1
                             )
                         }
                     }
                 }
 
-                // Acciones rápidas: Ver Código ESP32 y Cerrar Sesión Segura
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    IconButton(
-                        onClick = onShowEsp32Code,
-                        modifier = Modifier.testTag("esp32_code_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Code,
-                            contentDescription = "Ver código ESP32 /status",
-                            tint = IoTCyanBright
-                        )
-                    }
-                    IconButton(
-                        onClick = onLogout,
-                        modifier = Modifier.testTag("logout_button")
-                    ) {
+                    IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
                             contentDescription = "Cerrar sesión segura",
-                            tint = IoTRedStop
+                            tint = OemCriticalRed
                         )
                     }
                 }
@@ -885,15 +760,14 @@ fun TopStatusHeaderBar(
                 Text(
                     text = uiState.statusDetailMessage,
                     style = MaterialTheme.typography.labelSmall,
-                    color = IoTTextSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    color = OemTextSecondary,
+                    maxLines = 2,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = "Op: ${uiState.activeOperator}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = IoTCyanBright,
+                    color = OemTextSecondary,
                     fontFamily = FontFamily.Monospace
                 )
             }
@@ -902,7 +776,7 @@ fun TopStatusHeaderBar(
 }
 
 // ============================================================================
-// 3. TARJETA DE SELECCIÓN DE ROL E INTERCONEXIÓN INALÁMBRICA (P2P TCP / ESP32)
+// 3. TARJETA DE ROL Y RED INALÁMBRICA (SERVIDOR TCP / CLIENTE ESP32)
 // ============================================================================
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -912,7 +786,8 @@ fun RoleAndNetworkConfigCard(
     viewModel: IoTViewModel
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = IoTSurfaceCard),
+        colors = CardDefaults.cardColors(containerColor = OemCardSurface),
+        border = BorderStroke(1.dp, OemBorderSubtle),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -921,10 +796,10 @@ fun RoleAndNetworkConfigCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "1. Selección de Rol de Interconexión Inalámbrica",
+                text = "1. Rol Operativo del Smartphone en la Red IoT",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = IoTTextPrimary
+                color = OemTextWhite
             )
 
             Row(
@@ -935,81 +810,86 @@ fun RoleAndNetworkConfigCard(
                 Button(
                     onClick = { viewModel.selectDeviceRole(DeviceRole.SENSOR_NODE) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSensor) IoTCyanAccent else IoTSurfaceElevated,
-                        contentColor = if (isSensor) Color(0xFF00252B) else IoTTextPrimary
+                        containerColor = if (isSensor) OemSurfaceElevated else OemCardSurface,
+                        contentColor = if (isSensor) OemTextWhite else OemTextSecondary
                     ),
+                    border = BorderStroke(if (isSensor) 1.5.dp else 1.dp, if (isSensor) OemBorderProminent else OemBorderSubtle),
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .testTag("select_role_sensor_button")
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Memory, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.DirectionsCar, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("ROL A: NODO SENSOR", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text("ROL A: EL AUTO (VEHÍCULO)", fontWeight = FontWeight.Bold, fontSize = 11.sp)
                 }
 
                 val isStation = uiState.activeRole == DeviceRole.CONTROL_STATION
                 Button(
                     onClick = { viewModel.selectDeviceRole(DeviceRole.CONTROL_STATION) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isStation) IoTCyanAccent else IoTSurfaceElevated,
-                        contentColor = if (isStation) Color(0xFF00252B) else IoTTextPrimary
+                        containerColor = if (isStation) OemSurfaceElevated else OemCardSurface,
+                        contentColor = if (isStation) OemTextWhite else OemTextSecondary
                     ),
+                    border = BorderStroke(if (isStation) 1.5.dp else 1.dp, if (isStation) OemBorderProminent else OemBorderSubtle),
                     shape = RoundedCornerShape(10.dp),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .testTag("select_role_station_button")
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Router, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.SettingsInputAntenna, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("ROL B: ESTACIÓN", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text("ROL B: CONTROL REMOTO", fontWeight = FontWeight.Bold, fontSize = 11.sp)
                 }
             }
 
-            HorizontalDivider(color = IoTTextSecondary.copy(alpha = 0.2f))
+            HorizontalDivider(color = OemBorderSubtle)
 
             if (uiState.activeRole == DeviceRole.SENSOR_NODE) {
-                // Configuración del ROL A: NODO SENSOR / VEHÍCULO (ServerSocket TCP Puerto 8888)
                 Surface(
-                    color = IoTBackgroundDark,
+                    color = OemCanvasBackground,
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, IoTCyanAccent.copy(alpha = 0.45f)),
+                    border = BorderStroke(1.dp, OemBorderSubtle),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = "IP Local del Nodo Sensor (Ingrese esta IP en el Teléfono B):",
+                                text = "NÚMERO DE ENLACE DE ESTE AUTO (IP):",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = IoTTextSecondary
+                                fontWeight = FontWeight.Bold,
+                                color = OemTextSecondary
                             )
-                            Text(
-                                text = "${uiState.localIpAddress}:${uiState.tcpPort}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = IoTCyanBright,
-                                modifier = Modifier.testTag("sensor_local_ip_text")
-                            )
-                            Text(
-                                text = "Clientes conectados: ${uiState.connectedClientsCount} • Tramas JSON cada 200 ms",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = IoTTextSecondary
-                            )
+                            IconButton(onClick = { viewModel.refreshLocalIpAddress() }) {
+                                Icon(Icons.Default.Refresh, contentDescription = "Refrescar IP", tint = OemTextColdWhite)
+                            }
                         }
-                        IconButton(onClick = { viewModel.refreshLocalIpAddress() }) {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Actualizar IP local",
-                                tint = IoTCyanAccent
+
+                        Text(
+                            text = "${uiState.localIpAddress}",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Black,
+                            color = OemTextWhite
+                        )
+
+                        Text(
+                            text = "💡 Escribe este número en el teléfono que usarás como Control Remoto para vincular ambos equipos.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = OemTextSecondary
+                        )
+
+                        if (uiState.connectedClientsCount > 0) {
+                            Text(
+                                text = "🟢 ¡Control remoto conectado con éxito! (${uiState.connectedClientsCount} enlazado)",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = OemOptimalGreen
                             )
                         }
                     }
@@ -1018,14 +898,14 @@ fun RoleAndNetworkConfigCard(
                 Button(
                     onClick = { viewModel.toggleSensorNodeServer() },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (uiState.isNetworkLoopActive) IoTRedStop else IoTGreenForward,
+                        containerColor = if (uiState.isNetworkLoopActive) OemCriticalRed else OemSurfaceElevated,
                         contentColor = Color.White
                     ),
+                    border = BorderStroke(1.dp, if (uiState.isNetworkLoopActive) OemCriticalRed else OemBorderProminent),
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .testTag("toggle_sensor_server_button")
                 ) {
                     Icon(
                         imageVector = if (uiState.isNetworkLoopActive) Icons.Default.Stop else Icons.Default.PlayArrow,
@@ -1033,60 +913,103 @@ fun RoleAndNetworkConfigCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (uiState.isNetworkLoopActive) {
-                            "DETENER SERVIDOR TCP (PUERTO ${uiState.tcpPort})"
-                        } else {
-                            "INICIAR SERVIDOR TCP NODO SENSOR (PUERTO ${uiState.tcpPort})"
-                        },
-                        fontWeight = FontWeight.Bold
+                        text = if (uiState.isNetworkLoopActive) "DETENER AUTO" else "ACTIVAR AUTO",
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.5.sp
                     )
                 }
             } else {
-                // Configuración del ROL B: ESTACIÓN DE CONTROL (Cliente TCP P2P o HTTP ESP32)
                 val isEsp32Http = uiState.connectionMode == ControlConnectionMode.ESP32_HTTP
+
+                Text(
+                    text = "¿A qué te vas a conectar?",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = OemTextWhite
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = !isEsp32Http,
+                        onClick = {
+                            viewModel.setControlConnectionMode(ControlConnectionMode.ANDROID_P2P_TCP)
+                            if (uiState.targetIpAddress == "192.168.4.1" && uiState.localIpAddress != "127.0.0.1") {
+                                viewModel.updateTargetIpAddress(uiState.localIpAddress)
+                            }
+                        },
+                        label = { Text("📱 A otro Celular (Auto)") },
+                        leadingIcon = {
+                            Icon(Icons.Default.DirectionsCar, contentDescription = null, modifier = Modifier.size(16.dp))
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = OemSurfaceElevated,
+                            selectedLabelColor = Color.White,
+                            containerColor = OemCardSurface,
+                            labelColor = OemTextSecondary
+                        ),
+                        border = BorderStroke(1.dp, if (!isEsp32Http) OemBorderProminent else OemBorderSubtle),
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    FilterChip(
+                        selected = isEsp32Http,
+                        onClick = {
+                            viewModel.setControlConnectionMode(ControlConnectionMode.ESP32_HTTP)
+                            viewModel.updateTargetIpAddress("192.168.4.1")
+                        },
+                        label = { Text("🚗 Al Auto Real (ESP32)") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Memory, contentDescription = null, modifier = Modifier.size(16.dp))
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = OemSurfaceElevated,
+                            selectedLabelColor = Color.White,
+                            containerColor = OemCardSurface,
+                            labelColor = OemTextSecondary
+                        ),
+                        border = BorderStroke(1.dp, if (isEsp32Http) OemBorderProminent else OemBorderSubtle),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
                 Surface(
-                    color = IoTBackgroundDark,
-                    shape = RoundedCornerShape(12.dp),
+                    color = OemCanvasBackground,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, OemBorderSubtle),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
+                        if (!isEsp32Http) {
                             Text(
-                                text = uiState.connectionMode.title,
-                                style = MaterialTheme.typography.labelLarge,
+                                text = "📋 Pasos para conectar dos celulares:",
+                                style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = IoTCyanBright
+                                color = OemTextColdWhite
                             )
                             Text(
-                                text = uiState.connectionMode.subtitle,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = IoTTextSecondary
+                                text = "1. Conecta ambos celulares al mismo Wi-Fi (o comparte datos).\n2. En el celular del Auto pulsa 'ACTIVAR AUTO'.\n3. Escribe abajo el número IP que muestra ese celular:",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = OemTextSecondary
+                            )
+                        } else {
+                            Text(
+                                text = "📋 Pasos para conectar al ESP32 real:",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = OemTextColdWhite
+                            )
+                            Text(
+                                text = "1. Conéctate a la red Wi-Fi del vehículo ('Auto_IoT_Control').\n2. La dirección 192.168.4.1 ya está configurada.\n3. Presiona 'CONECTAR AL AUTO'.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = OemTextSecondary
                             )
                         }
-                        Switch(
-                            checked = isEsp32Http,
-                            onCheckedChange = { checked ->
-                                val newMode = if (checked) {
-                                    ControlConnectionMode.ESP32_HTTP
-                                } else {
-                                    ControlConnectionMode.ANDROID_P2P_TCP
-                                }
-                                viewModel.setControlConnectionMode(newMode)
-                            },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = IoTCyanBright,
-                                checkedTrackColor = IoTCyanAccent.copy(alpha = 0.4f),
-                                uncheckedThumbColor = IoTGreenForward,
-                                uncheckedTrackColor = IoTGreenForward.copy(alpha = 0.3f)
-                            ),
-                            modifier = Modifier.testTag("connection_mode_switch")
-                        )
                     }
                 }
 
@@ -1099,34 +1022,33 @@ fun RoleAndNetworkConfigCard(
                         value = uiState.targetIpAddress,
                         onValueChange = { viewModel.updateTargetIpAddress(it) },
                         label = {
-                            Text(
-                                if (isEsp32Http) "IP ESP32 SoftAP (HTTP :80)"
-                                else "IP del Teléfono Nodo Sensor (TCP :8888)"
-                            )
+                            Text(if (isEsp32Http) "IP del ESP32" else "IP que muestra el celular del Auto")
                         },
                         singleLine = true,
                         leadingIcon = {
-                            Icon(Icons.Default.Wifi, contentDescription = null, tint = IoTCyanAccent)
+                            Icon(Icons.Default.Wifi, contentDescription = null, tint = OemTextSecondary)
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = IoTCyanAccent,
-                            unfocusedBorderColor = IoTTextSecondary.copy(alpha = 0.4f)
+                            focusedBorderColor = OemTextColdWhite,
+                            unfocusedBorderColor = OemBorderSubtle,
+                            focusedLabelColor = OemTextColdWhite,
+                            unfocusedLabelColor = OemTextSecondary,
+                            focusedLeadingIconColor = OemTextColdWhite,
+                            unfocusedLeadingIconColor = OemTextSecondary,
+                            cursorColor = OemTextColdWhite
                         ),
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("target_ip_input")
+                        modifier = Modifier.weight(1f)
                     )
 
                     Button(
                         onClick = { viewModel.toggleControlStationConnection() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (uiState.isNetworkLoopActive) IoTRedStop else IoTCyanAccent,
-                            contentColor = if (uiState.isNetworkLoopActive) Color.White else Color(0xFF00252B)
+                            containerColor = if (uiState.isNetworkLoopActive) OemCriticalRed else OemSurfaceElevated,
+                            contentColor = Color.White
                         ),
+                        border = BorderStroke(1.dp, if (uiState.isNetworkLoopActive) OemCriticalRed else OemBorderProminent),
                         shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier
-                            .height(54.dp)
-                            .testTag("toggle_station_connect_button")
+                        modifier = Modifier.height(54.dp)
                     ) {
                         Icon(
                             imageVector = if (uiState.isNetworkLoopActive) Icons.Default.Stop else Icons.Default.Sync,
@@ -1135,37 +1057,34 @@ fun RoleAndNetworkConfigCard(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = if (uiState.isNetworkLoopActive) "CORTAR" else "CONECTAR",
-                            fontWeight = FontWeight.ExtraBold
+                            fontWeight = FontWeight.Black
                         )
                     }
                 }
 
-                // Chips rápidos de IPs frecuentes para agilizar la demostración en sala
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    AssistChip(
-                        onClick = {
-                            viewModel.setControlConnectionMode(ControlConnectionMode.ESP32_HTTP)
-                            viewModel.updateTargetIpAddress("192.168.4.1")
-                        },
-                        label = { Text("ESP32 SoftAP (192.168.4.1)", fontSize = 11.sp) },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = IoTSurfaceElevated)
+                if (!isEsp32Http) {
+                    Text(
+                        text = "Accesos rápidos:",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = OemTextSecondary
                     )
-                    AssistChip(
-                        onClick = {
-                            viewModel.setControlConnectionMode(ControlConnectionMode.ANDROID_P2P_TCP)
-                            viewModel.updateTargetIpAddress(uiState.localIpAddress)
-                        },
-                        label = { Text("Mi Subred (${uiState.localIpAddress})", fontSize = 11.sp) },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = IoTSurfaceElevated)
-                    )
-                    AssistChip(
-                        onClick = { viewModel.useLocalhostForLoopbackTest() },
-                        label = { Text("Loopback (127.0.0.1)", fontSize = 11.sp) },
-                        colors = AssistChipDefaults.assistChipColors(containerColor = IoTSurfaceElevated)
-                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        AssistChip(
+                            onClick = {
+                                viewModel.setControlConnectionMode(ControlConnectionMode.ANDROID_P2P_TCP)
+                                viewModel.updateTargetIpAddress(uiState.localIpAddress)
+                            },
+                            label = { Text("Usar mi IP actual (${uiState.localIpAddress})", fontSize = 11.sp) },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = OemSurfaceElevated,
+                                labelColor = OemTextSecondary
+                            ),
+                            border = BorderStroke(1.dp, OemBorderSubtle)
+                        )
+                    }
                 }
             }
         }
@@ -1173,7 +1092,7 @@ fun RoleAndNetworkConfigCard(
 }
 
 // ============================================================================
-// 4. CAJA DE TELEMETRÍA ULTRASÓNICA HC-SR04 (#00BCD4) Y REGLA CRÍTICA DE 15 CM
+// 4. SENSOR DE DISTANCIA Y FRENO AUTOMÁTICO A 15 CM
 // ============================================================================
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -1184,24 +1103,21 @@ fun UltrasonicTelemetryCard(
 ) {
     val isEmergency = uiState.distanciaCm <= IoTViewModel.DISTANCIA_SEGURIDAD
     val alertAccentColor by animateColorAsState(
-        targetValue = if (isEmergency) IoTRedStop else IoTCyanAccent,
+        targetValue = if (isEmergency) OemCriticalRed else OemOptimalGreen,
         animationSpec = tween(250),
         label = "alertAccent"
     )
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = IoTSurfaceCard),
-        border = BorderStroke(2.dp, alertAccentColor),
+        colors = CardDefaults.cardColors(containerColor = OemCardSurface),
+        border = BorderStroke(1.dp, if (isEmergency) OemCriticalRed else OemBorderSubtle),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("ultrasonic_telemetry_card")
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Cabecera de Telemetría y Alerta de Freno de Emergencia
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1214,39 +1130,35 @@ fun UltrasonicTelemetryCard(
                     Icon(
                         imageVector = Icons.Default.Radar,
                         contentDescription = null,
-                        tint = IoTCyanBright
+                        tint = if (isEmergency) OemCriticalRed else OemOptimalGreen
                     )
                     Text(
-                        text = "SENSOR ULTRASÓNICO HC-SR04",
+                        text = "SENSOR DE DISTANCIA",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = IoTCyanBright
+                        fontWeight = FontWeight.Bold,
+                        color = OemTextColdWhite
                     )
                 }
 
-                // Indicador de Freno de Seguridad (<= 15 cm: "⚠️ FRENO ACTIVO", > 15 cm: "VÍA DESPEJADA")
                 Surface(
-                    color = if (isEmergency) IoTRedStop else IoTGreenForward.copy(alpha = 0.22f),
+                    color = if (isEmergency) OemCriticalRed else OemOptimalGreen.copy(alpha = 0.15f),
                     shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, if (isEmergency) Color.White else IoTGreenForward)
+                    border = BorderStroke(1.dp, if (isEmergency) OemCriticalRed else OemOptimalGreen)
                 ) {
                     Text(
                         text = if (isEmergency) "⚠️ FRENO ACTIVO" else "VÍA DESPEJADA",
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (isEmergency) Color.White else IoTGreenForward,
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                            .testTag("safety_brake_status_text")
+                        fontWeight = FontWeight.Bold,
+                        color = if (isEmergency) Color.White else OemOptimalGreen,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
             }
 
-            // Caja Central con Radar Canvas + Distancia en cm + Estado del Motor L298N
             Surface(
-                color = IoTBackgroundDark,
+                color = OemCanvasBackground,
                 shape = RoundedCornerShape(14.dp),
-                border = BorderStroke(1.dp, IoTCyanAccent.copy(alpha = 0.5f)),
+                border = BorderStroke(1.dp, if (isEmergency) OemCriticalRed else OemBorderSubtle),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -1256,7 +1168,6 @@ fun UltrasonicTelemetryCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Radar Ultrasónico en Canvas
                     UltrasonicRadarCanvas(
                         distanceCm = uiState.distanciaCm,
                         isEmergency = isEmergency,
@@ -1265,7 +1176,6 @@ fun UltrasonicTelemetryCard(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // Lectura principal de distancia (rango 2 a 400 cm)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.weight(1f)
@@ -1273,52 +1183,50 @@ fun UltrasonicTelemetryCard(
                         Text(
                             text = "DISTANCIA OBSTÁCULO",
                             style = MaterialTheme.typography.labelSmall,
-                            color = IoTTextSecondary
+                            color = OemTextSecondary
                         )
                         Text(
                             text = "${uiState.distanciaCm} cm",
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 38.sp,
+                            fontWeight = FontWeight.Black,
                             fontFamily = FontFamily.Monospace,
-                            color = if (isEmergency) IoTRedStop else IoTCyanBright,
-                            modifier = Modifier.testTag("distance_value_text")
+                            color = if (isEmergency) OemCriticalRed else OemTextWhite
                         )
                         Text(
-                            text = "Umbral Freno Seguridad: ${IoTViewModel.DISTANCIA_SEGURIDAD} cm",
+                            text = "Umbral Crítico: ${IoTViewModel.DISTANCIA_SEGURIDAD} cm",
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isEmergency) IoTRedStop else IoTTextSecondary
+                            color = if (isEmergency) OemCriticalRed else OemTextSecondary
                         )
                     }
 
-                    // Estado actual del Driver L298N y LED de Alerta
                     Column(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Surface(
-                            color = IoTSurfaceElevated,
-                            shape = RoundedCornerShape(8.dp)
+                            color = OemSurfaceElevated,
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, OemBorderSubtle)
                         ) {
                             Column(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                 horizontalAlignment = Alignment.End
                             ) {
                                 Text(
-                                    text = "DRIVER L298N",
+                                    text = "ESTADO MOTOR",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = IoTTextSecondary
+                                    color = OemTextSecondary
                                 )
                                 val motorColor = when (uiState.estadoMotor) {
-                                    IoTViewModel.MOTOR_AVANZANDO -> IoTGreenForward
-                                    IoTViewModel.MOTOR_RETROCEDIENDO -> IoTBlueReverse
-                                    else -> IoTRedStop
+                                    IoTViewModel.MOTOR_AVANZANDO -> OemOptimalGreen
+                                    IoTViewModel.MOTOR_RETROCEDIENDO -> OemWarningAmber
+                                    else -> OemCriticalRed
                                 }
                                 Text(
                                     text = uiState.estadoMotor,
                                     style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = motorColor,
-                                    modifier = Modifier.testTag("motor_state_text")
+                                    fontWeight = FontWeight.Bold,
+                                    color = motorColor
                                 )
                             }
                         }
@@ -1331,19 +1239,19 @@ fun UltrasonicTelemetryCard(
                                 modifier = Modifier
                                     .size(10.dp)
                                     .clip(CircleShape)
-                                    .background(if (uiState.ledAlertaEncendido) IoTRedStop else Color.Gray)
+                                    .background(if (uiState.ledAlertaEncendido) OemCriticalRed else OemBorderSubtle)
                             )
                             Text(
                                 text = if (uiState.ledAlertaEncendido) "LED ALERTA: ON" else "LED ALERTA: OFF",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = if (uiState.ledAlertaEncendido) IoTRedStop else IoTTextSecondary
+                                color = if (uiState.ledAlertaEncendido) OemCriticalRed else OemTextSecondary
                             )
                         }
                     }
                 }
             }
 
-            // Controles del Sensor Ultrasónico (Disponibles en Nodo Sensor y también como Simulador Local)
+            // Barra de Trayectoria Dinámica (2 a 400 cm)
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1351,73 +1259,88 @@ fun UltrasonicTelemetryCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (uiState.activeRole == DeviceRole.SENSOR_NODE) {
-                            "Control de Distancia del Nodo Sensor (2 - 400 cm):"
-                        } else {
-                            "Simulador Local HC-SR04 / Prueba de Freno a 15 cm:"
-                        },
+                        text = "Trayectoria Dinámica (2 a 400 cm):",
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = IoTTextPrimary
+                        fontWeight = FontWeight.Bold,
+                        color = OemTextWhite
                     )
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            text = "Barrido Auto",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = IoTTextSecondary
-                        )
-                        Switch(
-                            checked = uiState.autoUltrasonicSim,
-                            onCheckedChange = { viewModel.toggleAutoUltrasonicSimulation(it) },
-                            modifier = Modifier.testTag("auto_ultrasonic_switch")
-                        )
-                    }
+                    Text(
+                        text = when (uiState.estadoMotor) {
+                            IoTViewModel.MOTOR_AVANZANDO -> "▲ Acercándose (-3 cm / 200 ms)"
+                            IoTViewModel.MOTOR_RETROCEDIENDO -> "▼ Alejándose (+3 cm / 200 ms)"
+                            else -> "■ Posición Fija"
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = when (uiState.estadoMotor) {
+                            IoTViewModel.MOTOR_AVANZANDO -> OemOptimalGreen
+                            IoTViewModel.MOTOR_RETROCEDIENDO -> OemWarningAmber
+                            else -> OemTextSecondary
+                        }
+                    )
                 }
 
-                Slider(
-                    value = uiState.distanciaCm.toFloat(),
-                    onValueChange = { newVal ->
-                        viewModel.updateUltrasonicDistance(newVal.roundToInt())
-                    },
-                    valueRange = IoTViewModel.MIN_DISTANCIA_CM.toFloat()..IoTViewModel.MAX_DISTANCIA_CM.toFloat(),
-                    colors = SliderDefaults.colors(
-                        thumbColor = alertAccentColor,
-                        activeTrackColor = alertAccentColor
-                    ),
+                LinearProgressIndicator(
+                    progress = { ((uiState.distanciaCm - 2f) / 398f).coerceIn(0.02f, 1f) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .testTag("distance_slider")
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = alertAccentColor,
+                    trackColor = OemCanvasBackground
                 )
+            }
 
-                // Botones de distancia predefinida para demostrar el freno de emergencia al profesor en 1 toque
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+            // Señales Lógicas de Pines GPIO (ESP32 -> Driver L298N & LED)
+            val motor = uiState.estadoMotor
+            val enaState = if (motor == IoTViewModel.MOTOR_DETENIDO) "LOW" else "HIGH"
+            val in1State = if (motor == IoTViewModel.MOTOR_AVANZANDO) "HIGH" else "LOW"
+            val in2State = if (motor == IoTViewModel.MOTOR_RETROCEDIENDO) "HIGH" else "LOW"
+            val ledPinState = if (isEmergency) "HIGH" else "LOW"
+
+            Surface(
+                color = OemCanvasBackground,
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, OemBorderSubtle),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    val presets = listOf(
-                        8 to "8 cm (Freno!)",
-                        15 to "15 cm (Límite)",
-                        25 to "25 cm (Seguro)",
-                        80 to "80 cm",
-                        250 to "250 cm"
+                    Text(
+                        text = "Señales Lógicas en Pines GPIO (L298N & LED):",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = OemTextSecondary
                     )
-                    presets.forEach { (cm, label) ->
-                        AssistChip(
-                            onClick = { viewModel.updateUltrasonicDistance(cm) },
-                            label = { Text(label, fontSize = 11.sp) },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = if (cm <= 15) {
-                                    IoTRedStop.copy(alpha = 0.22f)
-                                } else {
-                                    IoTSurfaceElevated
-                                },
-                                labelColor = if (cm <= 15) IoTRedStop else IoTTextPrimary
-                            ),
-                            modifier = Modifier.testTag("preset_dist_${cm}_chip")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        PinIndicator(
+                            label = "ENA (G14)",
+                            value = enaState,
+                            isActive = enaState == "HIGH",
+                            modifier = Modifier.weight(1f)
+                        )
+                        PinIndicator(
+                            label = "IN1 (G26)",
+                            value = in1State,
+                            isActive = in1State == "HIGH",
+                            modifier = Modifier.weight(1f)
+                        )
+                        PinIndicator(
+                            label = "IN2 (G27)",
+                            value = in2State,
+                            isActive = in2State == "HIGH",
+                            modifier = Modifier.weight(1f)
+                        )
+                        PinIndicator(
+                            label = "LED (G2)",
+                            value = ledPinState,
+                            isActive = isEmergency,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -1432,7 +1355,7 @@ fun UltrasonicRadarCanvas(
     isEmergency: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val radarColor = if (isEmergency) IoTRedStop else IoTCyanBright
+    val radarColor = if (isEmergency) OemCriticalRed else OemOptimalGreen
     val normalized = ((distanceCm - 2f) / 398f).coerceIn(0.05f, 1f)
 
     Canvas(modifier = modifier) {
@@ -1440,21 +1363,11 @@ fun UltrasonicRadarCanvas(
         val h = size.height
         val strokeWidth = 3.dp.toPx()
 
-        // Fondo circular de sonar
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(radarColor.copy(alpha = 0.25f), Color.Transparent)
-            ),
-            radius = w / 2f,
-            center = Offset(w / 2f, h / 2f)
-        )
-
-        // Arcos concéntricos de referencia
         for (factor in listOf(0.35f, 0.65f, 0.92f)) {
             val arcSize = w * factor
             val topLeft = Offset((w - arcSize) / 2f, (h - arcSize) / 2f)
             drawArc(
-                color = radarColor.copy(alpha = 0.35f),
+                color = OemBorderSubtle,
                 startAngle = 200f,
                 sweepAngle = 140f,
                 useCenter = false,
@@ -1464,7 +1377,6 @@ fun UltrasonicRadarCanvas(
             )
         }
 
-        // Arco activo proporcional a la distancia medida
         val activeSize = w * (0.25f + 0.67f * normalized)
         val activeTopLeft = Offset((w - activeSize) / 2f, (h - activeSize) / 2f)
         drawArc(
@@ -1477,7 +1389,6 @@ fun UltrasonicRadarCanvas(
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
         )
 
-        // Nodo central del vehículo
         drawCircle(
             color = radarColor,
             radius = 5.dp.toPx(),
@@ -1487,7 +1398,253 @@ fun UltrasonicRadarCanvas(
 }
 
 // ============================================================================
-// 5. PANEL DE BOTONES DE CONTROL GRANDES (ADELANTE #4CAF50, DETENER #F44336, ATRÁS #2196F3)
+// 5. INDICADOR DE PINES GPIO
+// ============================================================================
+
+@Composable
+fun PinIndicator(
+    label: String,
+    value: String,
+    isActive: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val activeColor = if (label.startsWith("LED")) OemCriticalRed else OemOptimalGreen
+    Surface(
+        color = if (isActive) activeColor.copy(alpha = 0.15f) else OemSurfaceElevated,
+        shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(1.dp, if (isActive) activeColor else OemBorderSubtle),
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier.padding(6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 9.sp, color = OemTextSecondary)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                color = if (isActive) activeColor else OemTextDim
+            )
+        }
+    }
+}
+
+// ============================================================================
+// 6. MODO PRUEBA LOCAL (EXCLUSIVO PARA ROL A: VEHÍCULO)
+// ============================================================================
+
+@Composable
+fun VehicleLocalTestCard(
+    uiState: IoTUiState,
+    viewModel: IoTViewModel
+) {
+    val isBrake = uiState.distanciaCm <= IoTViewModel.DISTANCIA_SEGURIDAD
+    val isAdvancing = uiState.estadoMotor == IoTViewModel.MOTOR_AVANZANDO
+    val isReversing = uiState.estadoMotor == IoTViewModel.MOTOR_RETROCEDIENDO
+
+    val forwardBg by animateColorAsState(
+        targetValue = when {
+            isBrake -> ForwardBtnDisabledBg
+            isAdvancing -> OemOptimalGreen.copy(alpha = 0.22f)
+            isReversing -> Color(0xFF1E2229)
+            else -> ForwardBtnBg
+        },
+        animationSpec = tween(200),
+        label = "testForwardBg"
+    )
+    val forwardBorderColor by animateColorAsState(
+        targetValue = when {
+            isBrake -> ForwardBtnDisabledBorder
+            isAdvancing -> OemOptimalGreen
+            isReversing -> OemBorderSubtle.copy(alpha = 0.5f)
+            else -> ForwardBtnBorder
+        },
+        animationSpec = tween(200),
+        label = "testForwardBorder"
+    )
+    val forwardContentColor by animateColorAsState(
+        targetValue = when {
+            isBrake -> ForwardBtnDisabledText
+            isAdvancing -> OemOptimalGreen
+            isReversing -> OemTextDim
+            else -> ForwardBtnText
+        },
+        animationSpec = tween(200),
+        label = "testForwardContent"
+    )
+
+    val reverseBg by animateColorAsState(
+        targetValue = when {
+            isReversing -> OemWarningAmber.copy(alpha = 0.22f)
+            isAdvancing -> Color(0xFF1E2229)
+            else -> NeutralCharcoalReverse
+        },
+        animationSpec = tween(200),
+        label = "testReverseBg"
+    )
+    val reverseBorderColor by animateColorAsState(
+        targetValue = when {
+            isReversing -> OemWarningAmber
+            isAdvancing -> OemBorderSubtle.copy(alpha = 0.5f)
+            else -> OemBorderSubtle
+        },
+        animationSpec = tween(200),
+        label = "testReverseBorder"
+    )
+    val reverseContentColor by animateColorAsState(
+        targetValue = when {
+            isReversing -> OemWarningAmber
+            isAdvancing -> OemTextDim
+            else -> Color.White
+        },
+        animationSpec = tween(200),
+        label = "testReverseContent"
+    )
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = OemCardSurface),
+        border = BorderStroke(1.dp, OemBorderSubtle),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Engineering,
+                    contentDescription = null,
+                    tint = OemTextSecondary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Column {
+                    Text(
+                        text = "MODO PRUEBA (SIMULACIÓN EN BANCO)",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = OemTextColdWhite
+                    )
+                    Text(
+                        text = "Simulación local mientras no haya vehículo físico conectado",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = OemTextSecondary
+                    )
+                }
+            }
+
+            Text(
+                text = "Como no hay un vehículo físico conectado, use estos mandos de prueba para mover el auto y verificar el frenado automático a 15 cm:",
+                style = MaterialTheme.typography.bodySmall,
+                color = OemTextSecondary
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Button(
+                    onClick = { viewModel.sendMotorCommand(IoTViewModel.CMD_ADELANTE) },
+                    enabled = !isBrake,
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = forwardBg,
+                        contentColor = forwardContentColor,
+                        disabledContainerColor = ForwardBtnDisabledBg,
+                        disabledContentColor = ForwardBtnDisabledText
+                    ),
+                    border = BorderStroke(if (isAdvancing) 2.dp else 1.dp, forwardBorderColor),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isBrake) Icons.Default.Lock else Icons.Default.ArrowUpward,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = when {
+                            isBrake -> "BLOQUEO"
+                            isAdvancing -> "AVANZAR ●"
+                            else -> "AVANZAR"
+                        },
+                        fontWeight = if (isAdvancing) FontWeight.Black else FontWeight.Bold,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
+
+                Button(
+                    onClick = { viewModel.sendMotorCommand(IoTViewModel.CMD_DETENER) },
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = CrimsonRedStop,
+                        contentColor = Color.White
+                    ),
+                    border = BorderStroke(1.dp, CrimsonRedStop),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = "DETENER",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
+
+                Button(
+                    onClick = { viewModel.sendMotorCommand(IoTViewModel.CMD_ATRAS) },
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = reverseBg,
+                        contentColor = reverseContentColor
+                    ),
+                    border = BorderStroke(if (isReversing) 2.dp else 1.dp, reverseBorderColor),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowDownward,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = if (isReversing) "ATRÁS ●" else "ATRÁS",
+                        fontWeight = if (isReversing) FontWeight.Black else FontWeight.Bold,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ============================================================================
+// 7. PANEL DE PILOTAJE (EXCLUSIVO PARA ROL B: ESTACIÓN DE CONTROL)
 // ============================================================================
 
 @Composable
@@ -1496,9 +1653,71 @@ fun MotorControlPadCard(
     viewModel: IoTViewModel
 ) {
     val isForwardBlocked = uiState.distanciaCm <= IoTViewModel.DISTANCIA_SEGURIDAD
+    val isAdvancing = uiState.estadoMotor == IoTViewModel.MOTOR_AVANZANDO
+    val isReversing = uiState.estadoMotor == IoTViewModel.MOTOR_RETROCEDIENDO
+
+    val padForwardBg by animateColorAsState(
+        targetValue = when {
+            isForwardBlocked -> ForwardBtnDisabledBg
+            isAdvancing -> OemOptimalGreen.copy(alpha = 0.22f)
+            isReversing -> Color(0xFF1E2229)
+            else -> ForwardBtnBg
+        },
+        animationSpec = tween(200),
+        label = "padForwardBg"
+    )
+    val padForwardBorderColor by animateColorAsState(
+        targetValue = when {
+            isForwardBlocked -> ForwardBtnDisabledBorder
+            isAdvancing -> OemOptimalGreen
+            isReversing -> OemBorderSubtle.copy(alpha = 0.5f)
+            else -> ForwardBtnBorder
+        },
+        animationSpec = tween(200),
+        label = "padForwardBorder"
+    )
+    val padForwardContentColor by animateColorAsState(
+        targetValue = when {
+            isForwardBlocked -> ForwardBtnDisabledText
+            isAdvancing -> OemOptimalGreen
+            isReversing -> OemTextDim
+            else -> ForwardBtnText
+        },
+        animationSpec = tween(200),
+        label = "padForwardContent"
+    )
+
+    val padReverseBg by animateColorAsState(
+        targetValue = when {
+            isReversing -> OemWarningAmber.copy(alpha = 0.22f)
+            isAdvancing -> Color(0xFF1E2229)
+            else -> NeutralCharcoalReverse
+        },
+        animationSpec = tween(200),
+        label = "padReverseBg"
+    )
+    val padReverseBorderColor by animateColorAsState(
+        targetValue = when {
+            isReversing -> OemWarningAmber
+            isAdvancing -> OemBorderSubtle.copy(alpha = 0.5f)
+            else -> OemBorderSubtle
+        },
+        animationSpec = tween(200),
+        label = "padReverseBorder"
+    )
+    val padReverseContentColor by animateColorAsState(
+        targetValue = when {
+            isReversing -> OemWarningAmber
+            isAdvancing -> OemTextDim
+            else -> Color.White
+        },
+        animationSpec = tween(200),
+        label = "padReverseContent"
+    )
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = IoTSurfaceCard),
+        colors = CardDefaults.cardColors(containerColor = OemCardSurface),
+        border = BorderStroke(1.dp, OemBorderSubtle),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -1515,61 +1734,59 @@ fun MotorControlPadCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.DirectionsCar,
-                        contentDescription = null,
-                        tint = IoTCyanBright
-                    )
+                    Icon(Icons.Default.SettingsInputAntenna, contentDescription = null, tint = OemTextSecondary)
                     Text(
-                        text = "MANDOS DE TRACCIÓN L298N",
+                        text = "MANDOS DE CONDUCCIÓN REMOTA",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = IoTTextPrimary
+                        fontWeight = FontWeight.Bold,
+                        color = OemTextWhite
                     )
                 }
 
-                Text(
-                    text = if (isForwardBlocked) {
-                        "Avance bloqueado (<= 15 cm)"
-                    } else {
-                        "Tracción habilitada"
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isForwardBlocked) IoTRedStop else IoTGreenForward,
-                    fontWeight = FontWeight.Bold
-                )
+                if (isForwardBlocked) {
+                    Text(
+                        text = "⚠️ BLOQUEO (<= 15 CM)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = OemCriticalRed,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
-            // Botón ADELANTE (Verde #4CAF50 - Se deshabilita visual y funcionalmente si distancia <= 15 cm)
+            // Botón ADELANTE (Grande - Iluminado en verde cuando avanza, atenuado cuando retrocede)
             Button(
                 onClick = { viewModel.sendMotorCommand(IoTViewModel.CMD_ADELANTE) },
                 enabled = !isForwardBlocked,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = IoTGreenForward,
-                    contentColor = Color.White,
-                    disabledContainerColor = IoTGreenForward.copy(alpha = 0.20f),
-                    disabledContentColor = Color.White.copy(alpha = 0.45f)
+                    containerColor = padForwardBg,
+                    contentColor = padForwardContentColor,
+                    disabledContainerColor = ForwardBtnDisabledBg,
+                    disabledContentColor = ForwardBtnDisabledText
+                ),
+                border = BorderStroke(
+                    width = if (isAdvancing) 2.dp else 1.5.dp,
+                    color = padForwardBorderColor
                 ),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .testTag("btn_cmd_adelante")
             ) {
                 Icon(
-                    imageVector = Icons.Default.ArrowUpward,
-                    contentDescription = "Comando Adelante",
+                    imageVector = if (isForwardBlocked) Icons.Default.Lock else Icons.Default.ArrowUpward,
+                    contentDescription = null,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = if (isForwardBlocked) {
-                        "ADELANTE (BLOQUEADO POR FRENO <= 15 CM)"
-                    } else {
-                        "ADELANTE (AVANZAR)"
+                    text = when {
+                        isForwardBlocked -> "ADELANTE (BLOQUEADO)"
+                        isAdvancing -> "ADELANTE (EN MARCHA ●)"
+                        else -> "ADELANTE"
                     },
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.ExtraBold
+                    fontWeight = if (isAdvancing) FontWeight.Black else FontWeight.Bold,
+                    letterSpacing = 0.5.sp
                 )
             }
 
@@ -1577,55 +1794,44 @@ fun MotorControlPadCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Botón DETENER (Rojo #F44336)
                 Button(
                     onClick = { viewModel.sendMotorCommand(IoTViewModel.CMD_DETENER) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = IoTRedStop,
+                        containerColor = CrimsonRedStop,
                         contentColor = Color.White
                     ),
+                    border = BorderStroke(1.dp, CrimsonRedStop),
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier
                         .weight(1f)
                         .height(60.dp)
-                        .testTag("btn_cmd_detener")
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Stop,
-                        contentDescription = "Comando Detener",
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Icon(Icons.Default.Stop, contentDescription = null, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "DETENER",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
+                    Text("DETENER", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
 
-                // Botón ATRÁS (Azul #2196F3)
                 Button(
                     onClick = { viewModel.sendMotorCommand(IoTViewModel.CMD_ATRAS) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = IoTBlueReverse,
-                        contentColor = Color.White
+                        containerColor = padReverseBg,
+                        contentColor = padReverseContentColor
+                    ),
+                    border = BorderStroke(
+                        width = if (isReversing) 2.dp else 1.dp,
+                        color = padReverseBorderColor
                     ),
                     shape = RoundedCornerShape(14.dp),
                     modifier = Modifier
                         .weight(1f)
                         .height(60.dp)
-                        .testTag("btn_cmd_atras")
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowDownward,
-                        contentDescription = "Comando Atrás",
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Icon(Icons.Default.ArrowDownward, contentDescription = null, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "ATRÁS",
+                        text = if (isReversing) "ATRÁS (EN MARCHA ●)" else "ATRÁS",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        fontWeight = if (isReversing) FontWeight.Black else FontWeight.Bold
                     )
                 }
             }
@@ -1634,7 +1840,7 @@ fun MotorControlPadCard(
 }
 
 // ============================================================================
-// 6. BITÁCORA EN VIVO DE SOCKETS TCP / HTTP Y AUDITORÍA ISO/IEC 27400
+// 7. BITÁCORA Y CONSOLA DE TELEMETRÍA (Dispatchers.IO)
 // ============================================================================
 
 @Composable
@@ -1645,7 +1851,8 @@ fun TelemetryLogConsoleCard(
     onClearLogs: () -> Unit
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = IoTSurfaceCard),
+        colors = CardDefaults.cardColors(containerColor = OemCardSurface),
+        border = BorderStroke(1.dp, OemBorderSubtle),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -1662,17 +1869,12 @@ fun TelemetryLogConsoleCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.NetworkCheck,
-                        contentDescription = null,
-                        tint = IoTCyanAccent,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Icon(Icons.Default.NetworkCheck, contentDescription = null, tint = OemTextSecondary, modifier = Modifier.size(18.dp))
                     Text(
-                        text = "CONSOLA DE TELEMETRÍA (Dispatchers.IO)",
+                        text = "CONSOLA DE EVENTOS TELEMÉTRICOS",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = IoTTextPrimary
+                        color = OemTextColdWhite
                     )
                 }
 
@@ -1684,16 +1886,13 @@ fun TelemetryLogConsoleCard(
                         text = "Tramas: $packetsCount • RTT: ${lastLatencyMs}ms",
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
-                        color = IoTCyanBright
+                        color = OemTextSecondary
                     )
-                    IconButton(
-                        onClick = onClearLogs,
-                        modifier = Modifier.size(28.dp)
-                    ) {
+                    IconButton(onClick = onClearLogs, modifier = Modifier.size(28.dp)) {
                         Icon(
                             imageVector = Icons.Default.DeleteSweep,
                             contentDescription = "Limpiar bitácora",
-                            tint = IoTTextSecondary,
+                            tint = OemTextSecondary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -1701,8 +1900,9 @@ fun TelemetryLogConsoleCard(
             }
 
             Surface(
-                color = IoTBackgroundDark,
+                color = OemConsoleBg,
                 shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, OemBorderSubtle),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -1713,10 +1913,10 @@ fun TelemetryLogConsoleCard(
                 ) {
                     if (logs.isEmpty()) {
                         Text(
-                            text = "Sin eventos registrados en la bitácora.",
+                            text = "Sin eventos registrados en la bitácora telemétrica.",
                             style = MaterialTheme.typography.labelSmall,
                             fontFamily = FontFamily.Monospace,
-                            color = IoTTextSecondary
+                            color = OemTextDim
                         )
                     } else {
                         logs.take(8).forEach { entry ->
@@ -1724,7 +1924,7 @@ fun TelemetryLogConsoleCard(
                                 text = "[${entry.timestamp}] [${entry.tag}] ${entry.message}",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontFamily = FontFamily.Monospace,
-                                color = if (entry.isWarning) IoTAmberWarning else IoTTextSecondary
+                                color = if (entry.isWarning) OemCriticalRed else OemTextConsole
                             )
                         }
                     }
@@ -1735,7 +1935,7 @@ fun TelemetryLogConsoleCard(
 }
 
 // ============================================================================
-// 7. BANNER Y DIÁLOGO EXPLICATIVO DE PERMISOS RUNTIME (ISO/IEC 27400)
+// 8. BANNERS Y DIÁLOGOS DE PERMISOS Y FIRMWARE
 // ============================================================================
 
 @Composable
@@ -1746,12 +1946,10 @@ fun PermissionWarningBanner(
     onShowDetails: (() -> Unit)? = null
 ) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF33260D)),
-        border = BorderStroke(1.dp, IoTAmberWarning),
+        colors = CardDefaults.cardColors(containerColor = OemCardSurface),
+        border = BorderStroke(1.dp, OemWarningAmber),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("permission_warning_banner")
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -1761,22 +1959,18 @@ fun PermissionWarningBanner(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = IoTAmberWarning
-                )
+                Icon(Icons.Default.Warning, contentDescription = null, tint = OemWarningAmber)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Aviso de Permisos en Runtime (ISO/IEC 27400)",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = IoTAmberWarning
+                        color = OemWarningAmber
                     )
                     Text(
-                        text = "Se rechazaron ${missingPermissions.size} permisos de cercanía/red. La app opera sin bloqueos, pero se recomiendan para auditoría de red Wi-Fi/Bluetooth.",
+                        text = "Se rechazaron ${missingPermissions.size} permisos de red/cercanía. La app continúa operando por IP sin interrupciones.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = IoTTextPrimary
+                        color = OemTextSecondary
                     )
                 }
             }
@@ -1788,26 +1982,20 @@ fun PermissionWarningBanner(
             ) {
                 if (onShowDetails != null) {
                     TextButton(onClick = onShowDetails) {
-                        Text("¿Por qué?", color = IoTCyanBright, fontSize = 12.sp)
+                        Text("¿Por qué?", color = OemWarningAmber, fontSize = 12.sp)
                     }
                 }
-                TextButton(
-                    onClick = onOpenSettings,
-                    modifier = Modifier.testTag("banner_open_settings_button")
-                ) {
+                TextButton(onClick = onOpenSettings) {
                     Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Configuración", color = IoTTextPrimary, fontSize = 12.sp)
+                    Text("Configuración", color = OemTextSecondary, fontSize = 12.sp)
                 }
                 Spacer(modifier = Modifier.width(6.dp))
                 Button(
                     onClick = onRequestPermissions,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = IoTAmberWarning,
-                        contentColor = Color.Black
-                    ),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                    modifier = Modifier.testTag("banner_retry_permissions_button")
+                    colors = ButtonDefaults.buttonColors(containerColor = OemSurfaceElevated, contentColor = Color.White),
+                    border = BorderStroke(1.dp, OemBorderProminent),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text("Volver a Solicitar", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
@@ -1825,30 +2013,25 @@ fun Iso27400PermissionRationaleDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = IoTSurfaceCard,
+        containerColor = OemCardSurface,
         icon = {
-            Icon(
-                imageVector = Icons.Default.Shield,
-                contentDescription = null,
-                tint = IoTAmberWarning,
-                modifier = Modifier.size(36.dp)
-            )
+            Icon(Icons.Default.Shield, contentDescription = null, tint = OemWarningAmber, modifier = Modifier.size(36.dp))
         },
         title = {
             Text(
-                text = "Seguridad IoT y Permisos de Cercanía (ISO/IEC 27400)",
+                text = "Seguridad IoT y Permisos (ISO/IEC 27400)",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = IoTTextPrimary,
+                color = OemTextWhite,
                 textAlign = TextAlign.Center
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "Para descubrir y verificar de forma segura el Nodo Sensor o el SoftAP del ESP32 (192.168.4.1), Android requiere autorización en tiempo de ejecución para:",
+                    text = "Para auditar y validar de forma segura el entorno Wi-Fi/Bluetooth del auto en sala, Android requiere:",
                     style = MaterialTheme.typography.bodySmall,
-                    color = IoTTextSecondary
+                    color = OemTextSecondary
                 )
                 missingPermissions.forEach { perm ->
                     val shortName = perm.substringAfterLast('.')
@@ -1856,20 +2039,21 @@ fun Iso27400PermissionRationaleDialog(
                         text = "• $shortName",
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
-                        color = IoTCyanBright
+                        color = OemTextColdWhite
                     )
                 }
                 Text(
-                    text = "Tolerancia a Denegación: Puede continuar usando los Sockets TCP/HTTP por IP manual sin que la aplicación se cierre.",
+                    text = "Resiliencia ante denegación: Puede seguir operando conectándose por IP manual sin bloqueos.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = IoTGreenForward
+                    color = OemOptimalGreen
                 )
             }
         },
         confirmButton = {
             Button(
                 onClick = onRetryRequest,
-                colors = ButtonDefaults.buttonColors(containerColor = IoTCyanAccent, contentColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(containerColor = OemSurfaceElevated, contentColor = Color.White),
+                border = BorderStroke(1.dp, OemBorderProminent)
             ) {
                 Text("Solicitar Nuevamente", fontWeight = FontWeight.Bold)
             }
@@ -1877,25 +2061,21 @@ fun Iso27400PermissionRationaleDialog(
         dismissButton = {
             Row {
                 TextButton(onClick = onOpenSettings) {
-                    Text("Abrir Ajustes", color = IoTAmberWarning)
+                    Text("Ajustes", color = OemTextSecondary)
                 }
                 TextButton(onClick = onDismiss) {
-                    Text("Continuar en Modo IP", color = IoTTextSecondary)
+                    Text("Continuar", color = OemTextSecondary)
                 }
             }
         }
     )
 }
 
-// ============================================================================
-// 8. MODAL CON ACTUALIZACIÓN DE FIRMWARE ESP32 (ARDUINO C++ ENDPOINT /status)
-// ============================================================================
-
 @Composable
 fun Esp32FirmwareDialog(onDismiss: () -> Unit) {
     val snippet = remember {
         """
-        // Endpoint JSON ligero para Evaluación Sumativa 2 (Auto_IoT_Control)
+        // Endpoint JSON /status para Auto_IoT_Control
         server.on("/status", HTTP_GET, []() {
           long dist = medirDistanciaCM();
           bool freno = (dist <= DISTANCIA_SEGURIDAD);
@@ -1917,35 +2097,36 @@ fun Esp32FirmwareDialog(onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = IoTSurfaceCard,
+        containerColor = OemCardSurface,
         icon = {
-            Icon(Icons.Default.Code, contentDescription = null, tint = IoTCyanBright)
+            Icon(Icons.Default.Code, contentDescription = null, tint = OemTextColdWhite)
         },
         title = {
             Text(
-                text = "Endpoint /status para ESP32 (Arduino C++)",
+                text = "Firmware ESP32 // Endpoint /status",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = IoTTextPrimary
+                color = OemTextWhite
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "Agregue este bloque en setup() de su sketch ESP32 (también incluido completo en /esp32_firmware/Auto_IoT_Control_ES2.ino):",
+                    text = "Código incluido en esp32_firmware/Auto_IoT_Control_ES2.ino con Cockpit Web moderno:",
                     style = MaterialTheme.typography.bodySmall,
-                    color = IoTTextSecondary
+                    color = OemTextSecondary
                 )
                 Surface(
-                    color = IoTBackgroundDark,
+                    color = OemConsoleBg,
                     shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, OemBorderSubtle),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = snippet,
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
-                        color = IoTCyanBright,
+                        color = OemTextConsole,
                         modifier = Modifier.padding(10.dp)
                     )
                 }
@@ -1954,7 +2135,8 @@ fun Esp32FirmwareDialog(onDismiss: () -> Unit) {
         confirmButton = {
             Button(
                 onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = IoTCyanAccent, contentColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(containerColor = OemSurfaceElevated, contentColor = Color.White),
+                border = BorderStroke(1.dp, OemBorderProminent)
             ) {
                 Text("Entendido", fontWeight = FontWeight.Bold)
             }
